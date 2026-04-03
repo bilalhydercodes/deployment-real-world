@@ -231,6 +231,7 @@ app.get('*', (req, res, next) => {
 app.use(errorMiddleware);
 
 // ── 17. Start server ──────────────────────────────────────────────────────────
+// v2.1 — login/register pages rewritten, trust proxy added
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n\x1b[35m🚀 Server running on http://localhost:${PORT}\x1b[0m`);
