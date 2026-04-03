@@ -159,6 +159,13 @@
     var pl = document.getElementById('pageLoader');
     if (pl) { pl.style.opacity='0'; setTimeout(function(){ if(pl.parentNode) pl.remove(); }, 400); }
   }, 800);
+
+  // Self-contained logout — works even if auth.js fails to load
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
+  }
 </script>
 
 <!-- Toast -->
