@@ -58,13 +58,14 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc:  ["'self'"],
-            scriptSrc:   ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
+            scriptSrc:   ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
             styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.tailwindcss.com"],
-            fontSrc:     ["'self'", "https://fonts.gstatic.com"],
-            imgSrc:      ["'self'", "data:", "https:"],
-            connectSrc:  ["'self'"],
+            fontSrc:     ["'self'", "https://fonts.gstatic.com", "data:"],
+            imgSrc:      ["'self'", "data:", "https:", "blob:"],
+            connectSrc:  ["'self'", "https:"],
             frameSrc:    ["'none'"],
             objectSrc:   ["'none'"],
+            workerSrc:   ["'self'", "blob:"],
         },
     },
     crossOriginEmbedderPolicy: false, // needed for html2pdf CDN
