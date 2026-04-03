@@ -21,6 +21,7 @@ const rateLimit      = require('express-rate-limit');
 const mongoSanitize  = require('express-mongo-sanitize');
 const hpp            = require('hpp');
 const xss            = require('xss');
+const compression    = require('compression');
 
 const connectDB        = require('./config/db');
 const requestLogger    = require('./middleware/requestLogger');
@@ -55,6 +56,9 @@ const app = express();
 
 // Trust Railway/Heroku/Render proxy — required for rate limiting and IP detection
 app.set('trust proxy', 1);
+
+// Gzip compression — reduces response size by ~70%, speeds up page loads
+app.use(compression());
 
 // ── 3. Security headers via Helmet ───────────────────────────────────────────
 app.use(helmet({
@@ -231,6 +235,7 @@ app.get('*', (req, res, next) => {
 app.use(errorMiddleware);
 
 // ── 17. Start server ──────────────────────────────────────────────────────────
+// v2.2 — force redeploy trigger
 // v2.1 — login/register pages rewritten, trust proxy added
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {

@@ -126,24 +126,25 @@ function renderPagination(containerId, page, totalPages, onPage) {
 
 /* ── Dashboard ──────────────────────────────────────────────────── */
 async function loadDashboard() {
+  // Show skeletons immediately
+  ['totalStudents','totalTeachers','totalAttendance','pendingFees','totalDiscipline','totalMarks']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '...'; });
+
   const token = localStorage.getItem('token');
   const h = { Authorization: 'Bearer ' + token };
   try {
-    const [tch, stud, att, mrk, fee, disc] = await Promise.all([
-      fetch('/api/teacher/all', {headers:h}).then(r=>r.json()),
-      fetch('/api/auth/students', {headers:h}).then(r=>r.json()),
-      fetch('/api/attendance', {headers:h}).then(r=>r.json()),
-      fetch('/api/marks', {headers:h}).then(r=>r.json()),
-      fetch('/api/fees', {headers:h}).then(r=>r.json()),
-      fetch('/api/discipline', {headers:h}).then(r=>r.json()),
-    ]);
-    document.getElementById('totalTeachers').textContent   = tch.data?.length ?? '—';
-    document.getElementById('totalStudents').textContent   = stud.data?.length ?? stud.pagination?.totalRecords ?? '—';
-    document.getElementById('totalAttendance').textContent = att.pagination?.totalRecords ?? att.data?.length ?? '—';
-    document.getElementById('pendingFees').textContent     = fee.data ? fee.data.filter(f=>f.status!=='paid').length : '—';
-    document.getElementById('totalDiscipline').textContent = disc.count ?? disc.data?.length ?? '—';
-    document.getElementById('totalMarks').textContent      = mrk.pagination?.totalRecords ?? mrk.data?.length ?? '—';
-  } catch(e) { console.error(e); }
+    // Single fast endpoint — 6 countDocuments in parallel server-side
+    const res = await fetch('/api/admin/stats', { headers: h });
+    const { data } = await res.json();
+    if (!data) return;
+    document.getElementById('totalStudents').textContent   = data.students   ?? '—';
+    document.getElementById('totalTeachers').textContent   = data.teachers   ?? '—';
+    document.getElementById('totalAttendance').textContent = data.attendance  ?? '—';
+    document.getElementById('pendingFees').textContent     = data.pendingFees ?? '—';
+    document.getElementById('totalDiscipline').textContent = data.discipline  ?? '—';
+    if (document.getElementById('totalMarks'))
+      document.getElementById('totalMarks').textContent   = data.marks       ?? '—';
+  } catch(e) { console.error('Dashboard stats failed:', e); }
 }
 
 /* ── Students ───────────────────────────────────────────────────── */
