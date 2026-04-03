@@ -144,7 +144,7 @@ function hidePageLoader() {
 
 /**
  * Global fetch interceptor — redirects to offline page when server is unreachable
- * Wraps window.fetch so every API call across all pages is covered automatically
+ * Only triggers for API calls, not CDN/external requests
  */
 (function () {
     const _fetch = window.fetch;
@@ -153,9 +153,9 @@ function hidePageLoader() {
             const res = await _fetch(...args);
             return res;
         } catch (err) {
-            // Only intercept API calls, not CDN/external requests
             const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
-            if (url.startsWith('/api/') || url.startsWith(window.location.origin + '/api/')) {
+            // Only intercept same-origin API calls
+            if (url.startsWith('/api/')) {
                 sessionStorage.setItem('offlineFrom', window.location.href);
                 sessionStorage.setItem('offlineError', err.message || 'Network error');
                 window.location.href = '/client/pages/offline.html';
