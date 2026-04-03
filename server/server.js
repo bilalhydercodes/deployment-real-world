@@ -31,7 +31,11 @@ const errorMiddleware  = require('./middleware/errorMiddleware');
 dotenv.config();
 
 // Fail fast if critical env vars are missing
-const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET'];
+const REQUIRED_ENV = ['JWT_SECRET'];
+if (!process.env.MONGO_URI && !process.env.DATABASE_URL) {
+    console.error('\x1b[31m[FATAL] Missing required env var: MONGO_URI or DATABASE_URL\x1b[0m');
+    process.exit(1);
+}
 REQUIRED_ENV.forEach(key => {
     if (!process.env[key]) {
         console.error(`\x1b[31m[FATAL] Missing required env var: ${key}\x1b[0m`);
