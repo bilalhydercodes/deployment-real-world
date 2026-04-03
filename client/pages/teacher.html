@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teacher Dashboard – College Management System</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body class="bg-[#0d0d1a] text-white min-h-screen flex">
+
+    <!-- Page Loading Splash -->
+    <div id="pageLoader" class="page-loader">
+        <div class="page-loader-spinner"></div>
+        <div class="page-loader-text">Loading Teacher Portal...</div>
+    </div>
+
+    <div id="toast" class="hidden"></div>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar w-64 bg-[#11112a] border-r border-white/5 flex flex-col h-screen sticky top-0">
+        <div class="p-6 border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-white">CollegeMS</p>
+                    <p class="text-xs text-emerald-400">Teacher Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 mx-3 mt-4 rounded-xl bg-white/5 border border-white/8">
+            <p class="text-xs text-gray-400">Logged in as</p>
+            <p id="teacherName" class="text-sm font-semibold text-white mt-0.5">Teacher</p>
+            <p class="text-xs text-emerald-400 mt-0.5">📚 Teacher</p>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1 mt-2">
+            <button class="nav-link active" onclick="showSection('attendance')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Mark Attendance
+            </button>
+            <button class="nav-link" onclick="showSection('marks')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                </svg>
+                Enter Marks
+            </button>
+            <button class="nav-link" onclick="showSection('viewAttendance')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Records
+            </button>
+            <button class="nav-link" onclick="showSection('timetable')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                My Timetable
+            </button>
+            <button class="nav-link" onclick="showSection('discipline')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Discipline Reports
+            </button>
+            <button class="nav-link" onclick="showSection('assignments')" style="display:none;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Assignments
+            </button>
+            <button class="nav-link" onclick="showSection('notices')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                </svg>
+                Notices
+            </button>
+            <button class="nav-link" onclick="showSection('leave')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                Apply Leave
+            </button>
+            <button class="nav-link" onclick="showSection('studentprofile')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                Student Profile
+            </button>
+        </nav>
+
+        <div class="p-4">
+            <button onclick="logout()" class="nav-link text-red-400 hover:text-red-300 w-full">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto flex flex-col">
+        <!-- Top Header Bar -->
+        <div class="top-header">
+            <button class="hamburger-btn" onclick="toggleSidebar()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div class="top-header-title" id="headerTitle">Mark Attendance</div>
+            <div class="top-header-meta">
+                <span id="headerDate"></span>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto p-6 space-y-6 w-full">
+
+            <!-- Mark Attendance -->
+            <section id="sec-attendance" class="section active">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-2">Mark Attendance</h2>
+                        <p class="text-gray-400 text-sm">Record student attendance for your class</p>
+                    </div>
+                </div>
+
+                <!-- Claim Session Widget -->
+                <div class="glass-card p-6 mb-6 border border-indigo-500/20 bg-indigo-500/5">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Claim Class Session</h3>
+                            <div class="tooltip-wrap">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Ask your Admin for the Session Code. Once claimed, you can mark attendance and view students in that class.</span>
+                            </div>
+                            <p class="text-xs text-indigo-200/60 mt-0.5">Enter the Session Code provided by the Admin to
+                                unlock access to those students.</p>
+                        </div>
+                    </div>
+                    <form id="claimSessionForm" class="flex flex-col sm:flex-row gap-4 items-end">
+                        <div class="flex-1 w-full">
+                            <label class="text-xs text-gray-400 block mb-1">Session Code</label>
+                            <input type="text" id="sessionCodeInput" required placeholder="e.g. SES-1A2B3C"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm uppercase tracking-wider font-mono" />
+                        </div>
+                        <button type="submit" id="claimBtn"
+                            class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-6 rounded-xl transition-colors w-full sm:w-auto text-sm">
+                            Claim Access
+                        </button>
+                    </form>
+                </div>
+
+                <div class="glass-card p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Load Class Attendance Roster</h3>
+                    <form id="loadBulkAttForm" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Session</label>
+                            <select id="bulkAttSession"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"
+                                required>
+                                <option value="">Loading Sessions...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Subject</label>
+                            <input type="text" id="bulkAttSubject" placeholder="e.g. Mathematics"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"
+                                required />
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Date</label>
+                            <input type="date" id="bulkAttDate"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"
+                                required />
+                        </div>
+                        <button type="submit" id="loadBulkBtn"
+                            class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-6 rounded-xl transition-colors text-sm">
+                            Load Students
+                        </button>
+                    </form>
+                </div>
+
+                <div id="bulkAttGrid" class="hidden glass-card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Invite Code</th>
+                                    <th>Status (Present/Absent/Late)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulkAttTbody"></tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 border-t border-white/5 bg-black/20 flex justify-end">
+                        <button id="submitBulkAttBtn" onclick="submitBulkAttendance()"
+                            class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm w-full sm:w-auto">
+                            Save Attendance Records
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Enter Marks -->
+            <section id="sec-marks" class="section">
+                <h2 class="text-2xl font-bold text-white mb-2">Enter Marks</h2>
+                <p class="text-gray-400 text-sm mb-6">Record exam marks for students</p>
+
+                <div class="glass-card p-6">
+                    <form id="marksForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Student</label>
+                            <select id="mrkStudentId"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="">Select Student</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Subject</label>
+                            <input type="text" id="mrkSubject" placeholder="e.g. Physics"
+                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Exam Type</label>
+                            <select id="mrkExamType"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="midterm">Midterm</option>
+                                <option value="final">Final</option>
+                                <option value="assignment">Assignment</option>
+                                <option value="quiz">Quiz</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Marks Obtained</label>
+                            <input type="number" id="mrkMarks" placeholder="0-100" min="0" max="100"
+                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Total Marks</label>
+                            <input type="number" id="mrkTotal" value="100" min="1"
+                                class="input-glow w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit"
+                                class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">
+                                Submit Marks
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- View Records -->
+            <section id="sec-viewAttendance" class="section">
+                <h2 class="text-2xl font-bold text-white mb-4">View Student Records</h2>
+
+                <div class="glass-card p-4 mb-4 flex gap-3 items-end">
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-400 block mb-1">Select Student</label>
+                        <select id="viewStudentId"
+                            class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <button onclick="loadStudentRecords()"
+                        class="btn-gradient text-white font-semibold py-2.5 px-6 rounded-xl text-sm">
+                        View
+                    </button>
+                    <button onclick="exportReportPDF()" id="exportPdfBtn"
+                        class="bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2.5 px-6 rounded-xl text-sm flex gap-2 items-center transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        PDF
+                    </button>
+                </div>
+
+                <div class="glass-card overflow-hidden mb-4">
+                    <div class="p-4 border-b border-white/5">
+                        <h3 class="text-sm font-semibold text-gray-300">Attendance</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="viewAttTable">
+                                <tr>
+                                    <td colspan="3" class="text-center text-gray-500 py-6">Select a student</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-card overflow-hidden">
+                    <div class="p-4 border-b border-white/5">
+                        <h3 class="text-sm font-semibold text-gray-300">Marks</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Exam</th>
+                                    <th>Marks</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="viewMrkTable">
+                                <tr>
+                                    <td colspan="4" class="text-center text-gray-500 py-6">Select a student</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- My Timetable -->
+            <section id="sec-timetable" class="section">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-2">My Timetable</h2>
+                        <p class="text-gray-400 text-sm">View your scheduled classes for each session</p>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 mb-4">
+                    <div class="flex flex-col sm:flex-row gap-3 items-end">
+                        <div class="flex-1">
+                            <label class="text-xs text-gray-400 block mb-1">Filter by Session</label>
+                            <select id="ttSessionSelect"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"
+                                onchange="loadTeacherTimetable()">
+                                <option value="">-- All My Sessions --</option>
+                            </select>
+                        </div>
+                        <button onclick="loadTeacherTimetable()"
+                            class="btn-gradient text-white font-semibold py-2.5 px-6 rounded-xl text-sm">
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div id="timetableGrid" class="space-y-4">
+                    <p class="text-gray-500 text-center py-8">Loading timetable...</p>
+                </div>
+            </section>
+
+            <!-- Discipline Reports -->
+            <section id="sec-discipline" class="section">
+                <h2 class="text-2xl font-bold text-white mb-2">Discipline Reports</h2>
+                <p class="text-gray-400 text-sm mb-6">Report student misconduct and view your submitted cases</p>
+
+                <!-- Report Form -->
+                <div class="glass-card p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Report Misconduct</h3>
+                    <form id="disciplineForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Student</label>
+                            <select id="discStudentId" required
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="">Select Student</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Severity</label>
+                            <select id="discSeverity"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="low">🟡 Low</option>
+                                <option value="medium">🟠 Medium</option>
+                                <option value="high">🔴 High</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Date of Incident</label>
+                            <input type="date" id="discDate"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-xs text-gray-400 block mb-1">Reason / Description</label>
+                            <textarea id="discReason" rows="3" required placeholder="Describe the misconduct..."
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm resize-none"></textarea>
+                        </div>
+                        <div class="md:col-span-2 flex justify-end">
+                            <button type="submit" class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">
+                                Submit Report
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- My Reports Table -->
+                <div class="glass-card overflow-hidden">
+                    <div class="p-4 border-b border-white/5">
+                        <h3 class="font-semibold text-white text-sm">My Submitted Reports</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Reason</th>
+                                    <th>Severity</th>
+                                    <th>Date</th>
+                                    <th>Action Taken</th>
+                                </tr>
+                            </thead>
+                            <tbody id="disciplineTable">
+                                <tr><td colspan="5" class="text-center text-gray-500 py-8">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Assignments (Coming Soon) -->
+            <section id="sec-assignments" class="section">
+                <div class="flex flex-col items-center justify-center py-24 gap-6">
+                    <div class="w-24 h-24 rounded-3xl flex items-center justify-center" style="background:rgba(99,102,241,.08);border:2px dashed rgba(99,102,241,.3);">
+                        <svg class="w-12 h-12 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-white mb-2">🚀 Coming Soon</h3>
+                        <p class="text-gray-400 text-sm max-w-sm">The Assignments feature is currently under development. We're working hard to bring it to you very soon!</p>
+                    </div>
+                    <div class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-indigo-300" style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);">
+                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Feature in development
+                    </div>
+                </div>
+            </section>
+
+            <!-- Notices Board -->
+            <section id="sec-notices" class="section">
+                <h2 class="text-2xl font-bold text-white mb-2">Notices Board</h2>
+                <p class="text-gray-400 text-sm mb-6">Notices posted by administration</p>
+                <div id="teacherNoticesList" class="space-y-3">
+                    <p class="text-gray-500 text-center py-8">Loading notices...</p>
+                </div>
+            </section>
+
+            <!-- Apply Leave -->
+            <section id="sec-leave" class="section">
+                <h2 class="text-2xl font-bold text-white mb-2">Apply for Leave</h2>
+                <p class="text-gray-400 text-sm mb-6">Submit a leave application</p>
+                <div class="glass-card p-6 mb-6">
+                    <form id="teacherLeaveForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">From Date</label>
+                            <input type="date" id="leaveFrom" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"/>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">To Date</label>
+                            <input type="date" id="leaveTo" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"/>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-xs text-gray-400 block mb-1">Reason</label>
+                            <textarea id="leaveReason" rows="3" required placeholder="Reason for leave..." class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm resize-none"></textarea>
+                        </div>
+                        <div class="md:col-span-2 flex justify-end">
+                            <button type="submit" class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">Submit Application</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="glass-card overflow-hidden">
+                    <div class="p-4 border-b border-white/5"><h3 class="font-semibold text-white text-sm">My Leave Applications</h3></div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr></thead>
+                            <tbody id="teacherLeaveTable"><tr><td colspan="4" class="text-center text-gray-500 py-6">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Student Profile -->
+            <section id="sec-studentprofile" class="section">
+                <h2 class="text-2xl font-bold text-white mb-2">Student Profile</h2>
+                <p class="text-gray-400 text-sm mb-6">View a student's complete academic profile</p>
+                <div class="glass-card p-4 mb-4 flex gap-3 items-end">
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-400 block mb-1">Select Student</label>
+                        <select id="profileStudentId" class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <button onclick="loadStudentProfile()" class="btn-gradient text-white font-semibold py-2.5 px-6 rounded-xl text-sm">View Profile</button>
+                </div>
+                <div id="studentProfileCard" class="hidden space-y-4">
+                    <div class="glass-card p-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-2xl font-bold text-white" id="profileAvatar">?</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white" id="profileName">—</h3>
+                                <p class="text-xs text-gray-400" id="profileCode">—</p>
+                            </div>
+                            <div class="ml-auto text-right">
+                                <p class="text-xs text-gray-400">Attendance</p>
+                                <p class="text-2xl font-bold text-emerald-400" id="profileAttPct">—</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="rounded-xl p-3 text-center" style="background:rgba(99,102,241,.1);">
+                                <p class="text-xs text-gray-400 mb-1">Avg Marks</p>
+                                <p class="text-xl font-bold text-indigo-300" id="profileAvgMarks">—</p>
+                            </div>
+                            <div class="rounded-xl p-3 text-center" style="background:rgba(245,158,11,.1);">
+                                <p class="text-xs text-gray-400 mb-1">Fees Status</p>
+                                <p class="text-sm font-bold text-amber-300" id="profileFeeStatus">—</p>
+                            </div>
+                            <div class="rounded-xl p-3 text-center" style="background:rgba(239,68,68,.1);">
+                                <p class="text-xs text-gray-400 mb-1">Discipline</p>
+                                <p class="text-xl font-bold text-red-300" id="profileDiscCount">—</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/attendance.js"></script>
+    <script src="../js/marks.js"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        const userRole = String(user?.role || '').toLowerCase().trim();
+        if (!user || userRole !== 'teacher') window.location.href = 'login.html';
+        document.getElementById('teacherName').textContent = user?.name || 'Teacher';
+
+        // Set header date and hide loader
+        document.getElementById('headerDate').textContent = getFormattedDate();
+        hidePageLoader();
+
+        // Helper for API calls
+        async function apiFetch(url, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            const res = await fetch(url, { ...options, headers });
+            const data = await res.json();
+            if (!res.ok) {
+                showToast(data.message || 'An error occurred', 'error');
+                throw new Error(data.message || 'API error');
+            }
+            return data;
+        }
+
+        function populateStudentDropdowns(students) {
+            const dropdownIds = ['attStudentId', 'mrkStudentId', 'viewStudentId', 'discStudentId'];
+            dropdownIds.forEach(elId => {
+                const sel = document.getElementById(elId);
+                if (sel) {
+                    sel.innerHTML = '<option value="">Select Student</option>';
+                    (students || []).forEach(s => {
+                        sel.innerHTML += `<option value="${s._id}">${s.name}</option>`;
+                    });
+                }
+            });
+        }
+
+        async function fetchStudents() {
+            try {
+                const data = await apiFetch('/api/auth/students');
+                populateStudentDropdowns(data.data);
+            } catch (error) {
+                console.error('Failed to fetch students:', error);
+                showToast('Failed to load students', 'error');
+            }
+        }
+
+        const sectionNames = {
+            attendance: 'Mark Attendance', marks: 'Enter Marks', viewAttendance: 'View Records',
+            timetable: 'My Timetable', discipline: 'Discipline Reports',
+            assignments: 'Assignments', notices: 'Notices Board',
+            leave: 'Apply for Leave', studentprofile: 'Student Profile'
+        };
+
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const sec = document.getElementById('sec-' + name);
+            if (sec) sec.classList.add('active');
+            if (event) event.currentTarget.classList.add('active');
+            document.getElementById('headerTitle').textContent = sectionNames[name] || name;
+            closeSidebar();
+            
+            if (name === 'timetable') {
+                loadTeacherSessionsIntoSelect();
+                loadTeacherTimetable();
+            } else if (['attendance', 'marks', 'viewAttendance'].includes(name)) {
+                fetchStudents();
+            } else if (name === 'discipline') {
+                fetchStudents();
+                loadDisciplineReports();
+            }
+        }
+
+        // Set today's date
+        document.getElementById('bulkAttDate').value = new Date().toISOString().split('T')[0];
+
+        let activeBulkStudents = [];
+
+        async function loadTeacherSessions() {
+            try {
+                const data = await apiFetch('/api/sessions');
+                const sel = document.getElementById('bulkAttSession');
+                sel.innerHTML = '<option value="">Select Session</option>';
+                if (data.data && data.data.length > 0) {
+                    data.data.forEach(s => {
+                        sel.innerHTML += `<option value="${s._id}">${s.name}</option>`;
+                    });
+                }
+            } catch (err) { }
+        }
+
+        document.getElementById('loadBulkAttForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sessionId = document.getElementById('bulkAttSession').value;
+            const subject = document.getElementById('bulkAttSubject').value.trim();
+            const date = document.getElementById('bulkAttDate').value;
+
+            if (!sessionId || !subject || !date) return showToast('Fill all fields', 'error');
+
+            const btn = document.getElementById('loadBulkBtn');
+            btn.disabled = true;
+
+            try {
+                const res = await apiFetch('/api/sessions');
+                const session = res.data.find(s => s._id === sessionId);
+                if (!session || !session.students || session.students.length === 0) {
+                    btn.disabled = false;
+                    return showToast('No students found in this session', 'error');
+                }
+
+                activeBulkStudents = session.students.map(s => ({
+                    studentId: s._id,
+                    name: s.name,
+                    inviteCode: s.inviteCode,
+                    subject,
+                    date,
+                    status: 'present' // Default
+                }));
+
+                renderBulkGrid();
+                document.getElementById('bulkAttGrid').classList.remove('hidden');
+            } catch (err) { } finally {
+                btn.disabled = false;
+            }
+        });
+
+        function renderBulkGrid() {
+            const tbody = document.getElementById('bulkAttTbody');
+            tbody.innerHTML = activeBulkStudents.map((s, idx) => `
+                <tr>
+                    <td class="font-medium text-white">${s.name}</td>
+                    <td class="font-mono text-indigo-400 text-sm">${s.inviteCode || 'N/A'}</td>
+                    <td>
+                        <select onchange="updateBulkStatus(${idx}, this.value)" class="input-glow w-[140px] bg-[#1a1a2e] border ${s.status === 'present' ? 'border-emerald-500/50 text-emerald-400' : s.status === 'absent' ? 'border-red-500/50 text-red-400' : 'border-amber-500/50 text-amber-400'} rounded-lg px-2 py-1.5 text-sm appearance-none cursor-pointer">
+                            <option value="present" ${s.status === 'present' ? 'selected' : ''}>✅ Present</option>
+                            <option value="absent"  ${s.status === 'absent' ? 'selected' : ''}>❌ Absent</option>
+                            <option value="late"    ${s.status === 'late' ? 'selected' : ''}>⏰ Late</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateBulkStatus(idx, status) {
+            activeBulkStudents[idx].status = status;
+            renderBulkGrid();
+        }
+
+        async function submitBulkAttendance() {
+            if (activeBulkStudents.length === 0) return;
+            const btn = document.getElementById('submitBulkAttBtn');
+            const og = btn.innerHTML;
+            btn.innerHTML = 'Saving...'; btn.disabled = true;
+
+            try {
+                const res = await apiFetch('/api/attendance/bulk-mark', {
+                    method: 'POST',
+                    body: JSON.stringify({ records: activeBulkStudents })
+                });
+                showToast(res.message, 'success');
+                document.getElementById('bulkAttGrid').classList.add('hidden');
+                document.getElementById('loadBulkAttForm').reset();
+                document.getElementById('bulkAttDate').value = new Date().toISOString().split('T')[0];
+            } catch (e) { } finally {
+                btn.innerHTML = og; btn.disabled = false;
+            }
+        }
+
+        document.getElementById('marksForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                studentId: document.getElementById('mrkStudentId').value,
+                subject: document.getElementById('mrkSubject').value.trim(),
+                examType: document.getElementById('mrkExamType').value,
+                marks: Number(document.getElementById('mrkMarks').value),
+                totalMarks: Number(document.getElementById('mrkTotal').value),
+            };
+            if (!payload.studentId || !payload.subject || isNaN(payload.marks)) return showToast('Please fill all fields', 'error');
+            try {
+                const data = await apiFetch('/api/marks/add', {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                });
+                if (data.success) {
+                    showToast(`Marks added! Grade: ${data.data.grade}`, 'success');
+                    e.target.reset();
+                    document.getElementById('mrkTotal').value = 100;
+                }
+            } catch (error) {
+                // Error handled by apiFetch
+            }
+        });
+
+        let currentViewRecords = { att: [], mrk: [] };
+
+        async function loadStudentRecords() {
+            const studentId = document.getElementById('viewStudentId').value;
+            if (!studentId) return showToast('Select a student', 'error');
+
+            const token = localStorage.getItem('token');
+            const headers = { Authorization: `Bearer ${token}` };
+
+            try {
+                const [attRes, mrkRes] = await Promise.all([
+                    fetch(`/api/attendance/${studentId}`, { headers }),
+                    fetch(`/api/marks/${studentId}`, { headers }),
+                ]);
+                const [att, mrk] = await Promise.all([attRes.json(), mrkRes.json()]);
+
+                currentViewRecords.att = att.data || [];
+                currentViewRecords.mrk = mrk.data || [];
+
+                const attBody = document.getElementById('viewAttTable');
+                attBody.innerHTML = att.data?.length
+                    ? att.data.map(a => `<tr><td>${a.subject}</td><td>${new Date(a.date).toLocaleDateString()}</td><td><span class="badge badge-${a.status}">${a.status}</span></td></tr>`).join('')
+                    : '<tr><td colspan="3" class="text-center text-gray-500 py-6">No attendance records</td></tr>';
+
+                const mrkBody = document.getElementById('viewMrkTable');
+                mrkBody.innerHTML = mrk.data?.length
+                    ? mrk.data.map(m => `<tr><td>${m.subject}</td><td class="capitalize">${m.examType}</td><td>${m.marks}/${m.totalMarks}</td><td><span class="badge badge-${m.grade === 'F' ? 'absent' : 'present'}">${m.grade}</span></td></tr>`).join('')
+                    : '<tr><td colspan="4" class="text-center text-gray-500 py-6">No marks records</td></tr>';
+            } catch (error) {
+                showToast('Failed to load records', 'error');
+            }
+        }
+
+        function exportReportPDF() {
+            const sel = document.getElementById('viewStudentId');
+            if (!sel.value) return showToast('Please select a student and click View first', 'error');
+
+            const studentName = sel.options[sel.selectedIndex].text;
+
+            // Generate clean HTML string for the PDF
+            const container = document.createElement('div');
+            container.innerHTML = `
+                <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333;">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <h1 style="color: #4f46e5; margin: 0; font-size: 28px;">College Management System</h1>
+                        <h2 style="color: #666; margin: 5px 0 0 0; font-size: 18px; font-weight: 500;">Official Student Report Card</h2>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px; border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+                        <p style="margin: 5px 0;"><strong>Student Name:</strong> ${studentName}</p>
+                        <p style="margin: 5px 0;"><strong>Generated On:</strong> ${new Date().toLocaleDateString()}</p>
+                    </div>
+
+                    <h3 style="color: #111; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Academic Marks</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6; text-align: left;">
+                                <th style="padding: 12px; border: 1px solid #e5e7eb;">Subject</th>
+                                <th style="padding: 12px; border: 1px solid #e5e7eb;">Exam Type</th>
+                                <th style="padding: 12px; border: 1px solid #e5e7eb;">Score</th>
+                                <th style="padding: 12px; border: 1px solid #e5e7eb;">Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${currentViewRecords.mrk.length > 0 ? currentViewRecords.mrk.map(m => `
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #e5e7eb;">${m.subject}</td>
+                                    <td style="padding: 10px; border: 1px solid #e5e7eb; text-transform: capitalize;">${m.examType}</td>
+                                    <td style="padding: 10px; border: 1px solid #e5e7eb;">${m.marks} / ${m.totalMarks}</td>
+                                    <td style="padding: 10px; border: 1px solid #e5e7eb; color: ${m.grade === 'F' ? '#dc2626' : '#16a34a'}; font-weight: bold;">${m.grade}</td>
+                                </tr>
+                            `).join('') : '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #9ca3af; border: 1px solid #e5e7eb;">No marks recorded</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    <h3 style="color: #111; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Attendance History</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6; text-align: left;">
+                                <th style="padding: 12px; border: 1px solid #e5e7eb;">Subject</th>
+                                <th style="padding: 12px; border: 1px solid #e5e7eb;">Date</th>
+                                <th style="padding: 12px; border: 1px solid #e5e7eb;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${currentViewRecords.att.length > 0 ? currentViewRecords.att.map(a => `
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #e5e7eb;">${a.subject}</td>
+                                    <td style="padding: 10px; border: 1px solid #e5e7eb;">${new Date(a.date).toLocaleDateString()}</td>
+                                    <td style="padding: 10px; border: 1px solid #e5e7eb; color: ${a.status === 'present' ? '#16a34a' : a.status === 'absent' ? '#dc2626' : '#d97706'}; font-weight: bold; text-transform: uppercase; font-size: 12px;">${a.status}</td>
+                                </tr>
+                            `).join('') : '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #9ca3af; border: 1px solid #e5e7eb;">No attendance recorded</td></tr>'}
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 50px; text-align: right; color: #9ca3af; font-size: 12px;">
+                        Generated by CollegeMS Automated System
+                    </div>
+                </div>
+            `;
+
+            const opt = {
+                margin: 0,
+                filename: `${studentName.replace(/\s+/g, '_')}_ReportCard.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            const btn = document.getElementById('exportPdfBtn');
+            const og = btn.innerHTML;
+            btn.innerHTML = '<span class="loader w-4 h-4 border-2"></span>'; btn.disabled = true;
+
+            html2pdf().set(opt).from(container).save().then(() => {
+                btn.innerHTML = og; btn.disabled = false;
+                showToast('Report PDF downloaded successfully!', 'success');
+            }).catch(err => {
+                btn.innerHTML = og; btn.disabled = false;
+                showToast('Failed to generate PDF', 'error');
+            });
+        }
+
+        document.getElementById('claimSessionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sessionCode = document.getElementById('sessionCodeInput').value.trim();
+            if (!sessionCode) return;
+
+            const btn = document.getElementById('claimBtn');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<span class="loader w-4 h-4 border-2"></span>';
+            btn.disabled = true;
+
+            try {
+                const res = await apiFetch('/api/sessions/claim', { method: 'POST', body: JSON.stringify({ sessionCode }) });
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    e.target.reset();
+                    fetchStudents();
+                    loadTeacherSessions();
+                }
+            } catch (err) {
+                // Handled in apiFetch
+            } finally {
+                btn.innerHTML = ogText;
+                btn.disabled = false;
+            }
+        });
+
+        // ── Timetable ────────────────────────────────────────────────────────────
+        async function loadTeacherSessionsIntoSelect() {
+            try {
+                const res = await apiFetch('/api/sessions');
+                if (!res?.success || !res.data?.length) return;
+
+                // Filter only sessions claimed by this teacher or assigned as class teacher
+                const mySessions = res.data.filter(s => {
+                    const claimed = s.teachers && s.teachers.some(id => id === user._id || id?._id === user._id || id?.toString() === user._id);
+                    const classTeacher = user.classTeacherOf && (s._id === (user.classTeacherOf._id || user.classTeacherOf));
+                    return claimed || classTeacher;
+                });
+                
+                const sel = document.getElementById('ttSessionSelect');
+                if (mySessions.length > 0) {
+                    sel.innerHTML = '<option value="">-- All My Sessions --</option>' + 
+                        mySessions.map(s => `<option value="${s._id}">${s.name} (${s.sessionCode})</option>`).join('');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadTeacherTimetable() {
+            const sessionId = document.getElementById('ttSessionSelect').value;
+            const grid = document.getElementById('timetableGrid');
+            grid.innerHTML = '<p class="text-gray-500 text-center py-6">Loading...</p>';
+            
+            try {
+                // To show "All My Sessions", we'd technically need a different API endpoint or loop over sessions.
+                // Assuming `/api/timetable/:sessionId` is the only way:
+                let entries = [];
+                
+                if (sessionId) {
+                    const res = await apiFetch(`/api/timetable/${sessionId}`);
+                    if (res?.success) entries = res.data;
+                } else {
+                    // Fetch all sessions this teacher is in and combine their timetables
+                    const sessionRes = await apiFetch('/api/sessions');
+                    if (sessionRes?.success) {
+                        const mySessions = sessionRes.data.filter(s => {
+                            const claimed = s.teachers && s.teachers.some(id => id === user._id || id?._id === user._id || id?.toString() === user._id);
+                            const classTeacher = user.classTeacherOf && (s._id === (user.classTeacherOf._id || user.classTeacherOf));
+                            return claimed || classTeacher;
+                        });
+                        
+                        await Promise.all(mySessions.map(async (s) => {
+                            const tRes = await apiFetch(`/api/timetable/${s._id}`);
+                            if (tRes?.success) {
+                                // Filter by teacher name (since timetable e.teacher is string)
+                                const myEntries = tRes.data.filter(e => e.teacher && e.teacher.toLowerCase() === user.name.toLowerCase());
+                                entries = [...entries, ...myEntries];
+                            }
+                        }));
+                    }
+                }
+
+                if (!entries.length) {
+                    grid.innerHTML = '<p class="text-gray-500 text-center py-8">No timetable entries scheduled for you yet.</p>';
+                    return;
+                }
+
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                const grouped = {};
+                days.forEach(d => grouped[d] = []);
+                entries.forEach(e => { if (grouped[e.dayOfWeek]) grouped[e.dayOfWeek].push(e); });
+
+                grid.innerHTML = days.filter(d => grouped[d].length > 0).map(day => `
+                    <div class="glass-card overflow-hidden">
+                        <div class="px-5 py-3 border-b border-white/5 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                            <h4 class="font-semibold text-white text-sm">${day}</h4>
+                        </div>
+                        <div class="divide-y divide-white/5">
+                            ${grouped[day].map(e => `
+                            <div class="px-5 py-3 flex items-center justify-between gap-4">
+                                <div>
+                                    <p class="font-medium text-white text-sm">${e.subject}</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Session Entry</p>
+                                </div>
+                                <span class="font-mono text-xs text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20 shrink-0">
+                                    ${e.startTime} – ${e.endTime}
+                                </span>
+                            </div>`).join('')}
+                        </div>
+                    </div>`).join('');
+            } catch (e) {
+                grid.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load timetable.</p>';
+            }
+        }
+
+        // ── Discipline ───────────────────────────────────────────────────────────
+        // discStudentId is populated by fetchStudents → populateStudentDropdowns below
+
+        document.getElementById('discDate').value = new Date().toISOString().split('T')[0];
+
+        document.getElementById('disciplineForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                studentId: document.getElementById('discStudentId').value,
+                reason: document.getElementById('discReason').value.trim(),
+                severity: document.getElementById('discSeverity').value,
+                date: document.getElementById('discDate').value,
+            };
+            if (!payload.studentId || !payload.reason) return showToast('Please fill all required fields', 'error');
+            try {
+                const res = await apiFetch('/api/discipline/report', { method: 'POST', body: JSON.stringify(payload) });
+                if (res.success) {
+                    showToast('Discipline case reported successfully', 'success');
+                    e.target.reset();
+                    document.getElementById('discDate').value = new Date().toISOString().split('T')[0];
+                    loadDisciplineReports();
+                }
+            } catch (err) { /* handled */ }
+        });
+
+        async function loadDisciplineReports() {
+            const tbody = document.getElementById('disciplineTable');
+            try {
+                const res = await apiFetch('/api/discipline');
+                if (!res.success || !res.data.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-500 py-8">No reports submitted yet</td></tr>';
+                    return;
+                }
+                const severityColor = { low: 'badge-late', medium: 'badge-late', high: 'badge-absent' };
+                const actionLabel = { pending: '⏳ Pending', warning: '⚠️ Warning', suspend: '🚫 Suspended', notify_parent: '📞 Parent Notified', resolved: '✅ Resolved' };
+                tbody.innerHTML = res.data.map(d => `
+                    <tr>
+                        <td class="font-medium">${d.student?.name || '—'}</td>
+                        <td class="max-w-xs truncate">${d.reason}</td>
+                        <td><span class="badge ${severityColor[d.severity] || 'badge-late'}">${d.severity}</span></td>
+                        <td>${new Date(d.date).toLocaleDateString()}</td>
+                        <td>${actionLabel[d.action] || d.action}</td>
+                    </tr>`).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-400 py-8">Failed to load</td></tr>';
+            }
+        }
+
+        // Init
+        async function initializeTeacherDashboard() {
+            try {
+                const res = await apiFetch('/api/auth/me');
+                if (res.success && res.data) {
+                    // Refresh local storage with latest data including classTeacherOf
+                    localStorage.setItem('user', JSON.stringify(res.data));
+                    Object.assign(user, res.data);
+
+                    await fetchStudents();
+                    if (typeof loadTeacherSessions === 'function') await loadTeacherSessions();
+                    await loadTeacherSessionsIntoSelect();
+
+                    // Auto-select classTeacherOf session if available
+                    if (user.classTeacherOf) {
+                        const sessionId = user.classTeacherOf._id || user.classTeacherOf;
+                        
+                        // 1. Timetable Dropdown
+                        const ttSelect = document.getElementById('ttSessionSelect');
+                        if (ttSelect && [...ttSelect.options].some(o => o.value === sessionId)) {
+                            ttSelect.value = sessionId;
+                        }
+                        
+                        // 2. Attendance Dropdown (if it exists)
+                        const attSelect = document.getElementById('bulkAttSession');
+                        if (attSelect && [...attSelect.options].some(o => o.value === sessionId)) {
+                            attSelect.value = sessionId;
+                        }
+                    }
+                    
+                    // Always load the timetable initially (it will use the selected value or default to "all")
+                    loadTeacherTimetable();
+                }
+            } catch (e) {
+                console.error("Failed to init teacher dashboard", e);
+            }
+        }
+
+        initializeTeacherDashboard();
+    </script>
+    <script>
+    // ── New Teacher Features ──────────────────────────────────────────────────
+
+    // Extend showSection for new sections
+    const _tOrigShow = window.showSection;
+    window.showSection = function(name) {
+        if (_tOrigShow) _tOrigShow(name);
+        if (name === 'notices')        loadTeacherNotices();
+        if (name === 'leave')          loadTeacherLeave();
+        if (name === 'studentprofile') fetchStudents().then(() => {
+            const sel = document.getElementById('profileStudentId');
+            if (sel) {
+                sel.innerHTML = document.getElementById('viewStudentId').innerHTML;
+            }
+        });
+    };
+
+    // ── NOTICES ───────────────────────────────────────────────────────────────
+    async function loadTeacherNotices() {
+        const el = document.getElementById('teacherNoticesList');
+        try {
+            const res = await apiFetch('/api/notices');
+            const notices = res.data || [];
+            if (!notices.length) {
+                el.innerHTML = '<p class="text-gray-500 text-center py-8 text-sm">No notices posted yet.</p>';
+                return;
+            }
+            el.innerHTML = notices.map(n => `
+                <div class="glass-card p-5">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-white text-sm mb-1">${n.title || 'Notice'}</h4>
+                            <p class="text-gray-400 text-sm">${n.message || n.content || ''}</p>
+                        </div>
+                        <span class="text-xs text-gray-500 whitespace-nowrap">${new Date(n.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>`).join('');
+        } catch(e) {
+            el.innerHTML = '<p class="text-red-400 text-center py-8 text-sm">Failed to load notices.</p>';
+        }
+    }
+
+    // ── LEAVE ─────────────────────────────────────────────────────────────────
+    async function loadTeacherLeave() {
+        const tbody = document.getElementById('teacherLeaveTable');
+        try {
+            const res = await apiFetch('/api/leaves');
+            const leaves = (res.data || []).filter(l => l.studentId?._id === (JSON.parse(localStorage.getItem('user')||'{}')._id));
+            if (!leaves.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-6 text-sm">No applications yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = leaves.map(l => `
+                <tr>
+                    <td class="text-sm text-gray-300">${new Date(l.fromDate).toLocaleDateString()}</td>
+                    <td class="text-sm text-gray-300">${new Date(l.toDate).toLocaleDateString()}</td>
+                    <td class="text-sm text-gray-400">${l.reason}</td>
+                    <td><span class="px-2 py-1 rounded-full text-xs font-semibold ${l.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300' : l.status === 'rejected' ? 'bg-red-500/20 text-red-300' : 'bg-amber-500/20 text-amber-300'}">${l.status}</span></td>
+                </tr>`).join('');
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-6 text-sm">Failed to load.</td></tr>';
+        }
+    }
+
+    document.getElementById('teacherLeaveForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type=submit]');
+        btn.disabled = true; btn.textContent = 'Submitting...';
+        try {
+            const res = await apiFetch('/api/leaves', {
+                method: 'POST',
+                body: JSON.stringify({
+                    fromDate: document.getElementById('leaveFrom').value,
+                    toDate:   document.getElementById('leaveTo').value,
+                    reason:   document.getElementById('leaveReason').value,
+                })
+            });
+            showToast('Leave application submitted!', 'success');
+            document.getElementById('teacherLeaveForm').reset();
+            loadTeacherLeave();
+        } catch(e) {} finally {
+            btn.disabled = false; btn.textContent = 'Submit Application';
+        }
+    });
+
+    // ── STUDENT PROFILE ───────────────────────────────────────────────────────
+    async function loadStudentProfile() {
+        const studentId = document.getElementById('profileStudentId').value;
+        if (!studentId) return showToast('Select a student', 'error');
+        const card = document.getElementById('studentProfileCard');
+        card.classList.remove('hidden');
+
+        try {
+            const [attRes, marksRes, feesRes, discRes] = await Promise.all([
+                apiFetch(`/api/attendance/${studentId}`),
+                apiFetch(`/api/marks/${studentId}`),
+                apiFetch(`/api/fees/${studentId}`),
+                apiFetch(`/api/discipline/student/${studentId}`),
+            ]);
+
+            const stuName = document.getElementById('profileStudentId').options[document.getElementById('profileStudentId').selectedIndex].text;
+            document.getElementById('profileAvatar').textContent = stuName.charAt(0).toUpperCase();
+            document.getElementById('profileName').textContent = stuName;
+
+            // Attendance %
+            const att = attRes.data || [];
+            const attPct = att.length ? Math.round(att.filter(a => a.status === 'present').length / att.length * 100) : 0;
+            document.getElementById('profileAttPct').textContent = attPct + '%';
+            document.getElementById('profileAttPct').style.color = attPct >= 75 ? '#34d399' : '#f87171';
+
+            // Avg marks
+            const marks = marksRes.data || [];
+            const avgM = marks.length ? Math.round(marks.reduce((s, m) => s + (m.marks / m.totalMarks * 100), 0) / marks.length) : null;
+            document.getElementById('profileAvgMarks').textContent = avgM !== null ? avgM + '%' : '—';
+
+            // Fee status
+            const fees = feesRes.data || [];
+            const unpaid = fees.filter(f => f.status !== 'paid').length;
+            document.getElementById('profileFeeStatus').textContent = unpaid ? `${unpaid} unpaid` : 'All clear ✓';
+
+            // Discipline count
+            document.getElementById('profileDiscCount').textContent = (discRes.data || []).length;
+        } catch(e) {
+            showToast('Failed to load profile', 'error');
+        }
+    }
+    </script>
+</body>
+</html>

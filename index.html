@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CollegeMS – Modern College Management System</title>
+  <meta name="description" content="CollegeMS is a complete college management platform for students, teachers, and administrators. Manage attendance, marks, fees, timetables and more." />
+  <link rel="icon" type="image/svg+xml" href="client/favicon.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    .gradient-hero {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffffff 45%, #ffedd5 100%);
+    }
+    .orange-glow {
+      background: radial-gradient(circle at 70% 30%, rgba(249,115,22,0.08) 0%, transparent 60%);
+    }
+    .feature-card {
+      background: #fff;
+      border: 1px solid rgba(249,115,22,0.1);
+      border-radius: 16px;
+      padding: 1.75rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(249,115,22,0.25);
+      box-shadow: 0 12px 36px rgba(249,115,22,0.1);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #fff;
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #ea580c, #c2410c);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(249,115,22,0.35);
+    }
+    .btn-outline {
+      background: transparent;
+      color: #ea580c;
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+      border: 2px solid rgba(249,115,22,0.3);
+    }
+    .btn-outline:hover {
+      background: rgba(249,115,22,0.06);
+      border-color: #f97316;
+    }
+    .role-card {
+      background: #fff;
+      border: 1.5px solid rgba(249,115,22,0.12);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .role-card:hover {
+      border-color: rgba(249,115,22,0.35);
+      box-shadow: 0 10px 32px rgba(249,115,22,0.1);
+      transform: translateY(-3px);
+    }
+    .badge-trust {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(249,115,22,0.08);
+      color: #ea580c;
+      border: 1px solid rgba(249,115,22,0.2);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .stat-pill {
+      background: #fff;
+      border: 1px solid rgba(249,115,22,0.1);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.9); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(249,115,22,0.08); }
+  </style>
+</head>
+<body class="bg-white text-gray-800">
+
+  <!-- Nav -->
+  <nav>
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#f97316,#ea580c);">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+          </svg>
+        </div>
+        <span class="font-bold text-gray-900 text-lg">CollegeMS</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-500">
+        <a href="#features" class="hover:text-orange-600 transition-colors">Features</a>
+        <a href="#roles" class="hover:text-orange-600 transition-colors">Who It's For</a>
+        <a href="#security" class="hover:text-orange-600 transition-colors">Security</a>
+      </div>
+      <a href="client/pages/login.html" class="btn-primary text-sm py-2.5 px-5">
+        Sign In
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="gradient-hero relative overflow-hidden">
+    <div class="orange-glow absolute inset-0 pointer-events-none"></div>
+    <div class="max-w-6xl mx-auto px-6 py-24 text-center relative z-10">
+      <div class="badge-trust mb-6 mx-auto w-fit">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Trusted College Management Platform
+      </div>
+      <h1 class="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
+        Manage Your College<br/>
+        <span style="background:linear-gradient(135deg,#f97316,#ea580c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Smarter & Faster</span>
+      </h1>
+      <p class="text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+        A complete management system for students, teachers, and administrators. Attendance, marks, fees, timetables — all in one place.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="client/pages/login.html" class="btn-primary text-base">
+          Get Started
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <a href="client/pages/register.html" class="btn-outline text-base">
+          Admin Setup
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-3xl mx-auto">
+        <div class="stat-pill">
+          <p class="text-2xl font-bold text-orange-500">OTP</p>
+          <p class="text-xs text-gray-400 mt-1">Verified Login</p>
+        </div>
+        <div class="stat-pill">
+          <p class="text-2xl font-bold text-orange-500">PDF</p>
+          <p class="text-xs text-gray-400 mt-1">Report Cards</p>
+        </div>
+        <div class="stat-pill">
+          <p class="text-2xl font-bold text-orange-500">3</p>
+          <p class="text-xs text-gray-400 mt-1">Role Portals</p>
+        </div>
+        <div class="stat-pill">
+          <p class="text-2xl font-bold text-orange-500">SSL</p>
+          <p class="text-xs text-gray-400 mt-1">Encrypted</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-24 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold text-gray-900 mb-3">Everything You Need</h2>
+        <p class="text-gray-500 max-w-xl mx-auto">Built for real colleges, with the features that matter most to students, teachers, and admins.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="feature-card">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:rgba(249,115,22,0.1);">
+            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Attendance Tracking</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">Bulk attendance marking per session with automatic percentage calculation and low-attendance alerts.</p>
+        </div>
+        <div class="feature-card">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:rgba(99,102,241,0.1);">
+            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Marks & Grades</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">Enter midterm, final, quiz, and assignment marks. Auto-calculated grades with downloadable PDF report cards.</p>
+        </div>
+        <div class="feature-card">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:rgba(245,158,11,0.1);">
+            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Fee Management</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">Track tuition, hostel, and exam fees. Clear paid/pending/overdue status for every student.</p>
+        </div>
+        <div class="feature-card">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:rgba(34,197,94,0.1);">
+            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Timetable</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">Admin creates class timetables per session. Students and teachers see their own schedule instantly.</p>
+        </div>
+        <div class="feature-card">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:rgba(239,68,68,0.1);">
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Discipline Records</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">Teachers file misconduct reports with severity levels. Students can view their own records transparently.</p>
+        </div>
+        <div class="feature-card">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:rgba(139,92,246,0.1);">
+            <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Notice Board</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">Admin posts announcements visible to all students and teachers in real time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roles -->
+  <section id="roles" class="py-24" style="background:linear-gradient(135deg,#fff7ed,#ffffff,#ffedd5);">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold text-gray-900 mb-3">Three Portals, One System</h2>
+        <p class="text-gray-500">Each role gets a tailored experience with exactly the tools they need.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="role-card">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,#f97316,#ea580c);">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Admin</h3>
+          <p class="text-sm text-gray-500 mb-4">Full control over students, teachers, classes, fees, notices, and reports.</p>
+          <ul class="text-xs text-gray-400 space-y-1.5 text-left">
+            <li>✓ Add/manage students & teachers</li>
+            <li>✓ Create sessions & timetables</li>
+            <li>✓ Bulk password management</li>
+            <li>✓ Audit logs & reports</li>
+          </ul>
+        </div>
+        <div class="role-card">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,#10b981,#059669);">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Teacher</h3>
+          <p class="text-sm text-gray-500 mb-4">Mark attendance, enter marks, file discipline reports, and view student records.</p>
+          <ul class="text-xs text-gray-400 space-y-1.5 text-left">
+            <li>✓ Bulk attendance marking</li>
+            <li>✓ Enter exam marks</li>
+            <li>✓ Discipline reports</li>
+            <li>✓ Export student PDF reports</li>
+          </ul>
+        </div>
+        <div class="role-card">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+          </div>
+          <h3 class="font-bold text-gray-900 text-lg mb-2">Student</h3>
+          <p class="text-sm text-gray-500 mb-4">View attendance, marks, fees, timetable, and download your own report card.</p>
+          <ul class="text-xs text-gray-400 space-y-1.5 text-left">
+            <li>✓ Real-time attendance view</li>
+            <li>✓ Marks & grade tracking</li>
+            <li>✓ Fee status & history</li>
+            <li>✓ PDF report card download</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security -->
+  <section id="security" class="py-24 bg-white">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style="background:linear-gradient(135deg,#f97316,#ea580c);">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <h2 class="text-3xl font-bold text-gray-900 mb-4">Built With Security in Mind</h2>
+      <p class="text-gray-500 mb-12 max-w-xl mx-auto">Student data is sensitive. We take that seriously with multiple layers of protection.</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-5 rounded-2xl border border-orange-100 bg-orange-50">
+          <p class="font-semibold text-gray-800 text-sm mb-1">OTP Verification</p>
+          <p class="text-xs text-gray-400">Email-based 2-step login for staff</p>
+        </div>
+        <div class="p-5 rounded-2xl border border-orange-100 bg-orange-50">
+          <p class="font-semibold text-gray-800 text-sm mb-1">Rate Limiting</p>
+          <p class="text-xs text-gray-400">Brute force protection on all auth endpoints</p>
+        </div>
+        <div class="p-5 rounded-2xl border border-orange-100 bg-orange-50">
+          <p class="font-semibold text-gray-800 text-sm mb-1">JWT Auth</p>
+          <p class="text-xs text-gray-400">Signed tokens with role-based access control</p>
+        </div>
+        <div class="p-5 rounded-2xl border border-orange-100 bg-orange-50">
+          <p class="font-semibold text-gray-800 text-sm mb-1">Security Headers</p>
+          <p class="text-xs text-gray-400">CSP, XSS protection, and more via Helmet</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20" style="background:linear-gradient(135deg,#f97316,#ea580c);">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+      <h2 class="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
+      <p class="text-orange-100 mb-8 text-lg">Set up your admin account and start managing your college in minutes.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="client/pages/register.html" style="background:#fff;color:#ea580c;padding:0.85rem 2rem;border-radius:12px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;transition:all 0.25s ease;">
+          Create Admin Account
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <a href="client/pages/login.html" style="background:rgba(255,255,255,0.15);color:#fff;padding:0.85rem 2rem;border-radius:12px;font-weight:600;text-decoration:none;border:2px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;gap:0.5rem;">
+          Sign In
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-gray-400 py-10">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#f97316,#ea580c);">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+        </div>
+        <span class="text-white font-semibold">CollegeMS</span>
+      </div>
+      <p class="text-sm">© 2026 CollegeMS. All rights reserved.</p>
+      <div class="flex gap-6 text-sm">
+        <a href="client/pages/login.html" class="hover:text-orange-400 transition-colors">Login</a>
+        <a href="client/pages/register.html" class="hover:text-orange-400 transition-colors">Register</a>
+        <a href="client/pages/forgot-password.html" class="hover:text-orange-400 transition-colors">Forgot Password</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

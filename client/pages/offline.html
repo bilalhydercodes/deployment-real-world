@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Server Down – SchoolMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+
+        body { background: #0d0d1a; overflow-x: hidden; }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .meme-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .meme-card:hover {
+            background: rgba(255,255,255,0.07);
+            transform: translateY(-4px);
+            border-color: rgba(249,115,22,0.3);
+        }
+
+        .pulse-ring {
+            animation: pulseRing 2s ease-out infinite;
+        }
+        @keyframes pulseRing {
+            0%   { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2);   opacity: 0; }
+        }
+
+        .bounce { animation: bounce 1.5s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-12px); }
+        }
+
+        .spin-slow { animation: spin 4s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .fade-in { animation: fadeIn 0.6s ease forwards; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #f97316, #ec4899, #8b5cf6);
+            border-radius: 999px;
+            animation: progress 3s ease-in-out infinite;
+        }
+        @keyframes progress {
+            0%   { width: 0%; }
+            50%  { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        .glitch {
+            position: relative;
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+        }
+        .glitch::before {
+            color: #f97316;
+            animation: glitch1 3s infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+        }
+        .glitch::after {
+            color: #8b5cf6;
+            animation: glitch2 3s infinite;
+            clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+        }
+        @keyframes glitch1 {
+            0%, 90%, 100% { transform: translate(0); }
+            92% { transform: translate(-3px, 1px); }
+            94% { transform: translate(3px, -1px); }
+        }
+        @keyframes glitch2 {
+            0%, 90%, 100% { transform: translate(0); }
+            92% { transform: translate(3px, 1px); }
+            94% { transform: translate(-3px, -1px); }
+        }
+
+        #retryBtn {
+            background: linear-gradient(135deg, #f97316, #ec4899);
+            transition: all 0.3s ease;
+        }
+        #retryBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(249,115,22,0.4);
+        }
+        #retryBtn:active { transform: scale(0.97); }
+
+        .tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 999px; font-size: 0.72rem;
+            font-weight: 600; letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6 text-white">
+
+    <!-- Ambient blobs -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute w-96 h-96 rounded-full opacity-10 blur-3xl"
+             style="background:#f97316;top:-10%;left:-10%;animation:float1 8s ease-in-out infinite;"></div>
+        <div class="absolute w-80 h-80 rounded-full opacity-10 blur-3xl"
+             style="background:#8b5cf6;bottom:-10%;right:-10%;animation:float2 10s ease-in-out infinite;"></div>
+        <div class="absolute w-64 h-64 rounded-full opacity-8 blur-3xl"
+             style="background:#ec4899;top:50%;left:50%;transform:translate(-50%,-50%);animation:float1 12s ease-in-out infinite reverse;"></div>
+    </div>
+    <style>
+        @keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,20px)} }
+        @keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,30px)} }
+    </style>
+
+    <div class="relative z-10 max-w-2xl w-full text-center fade-in">
+
+        <!-- Status indicator -->
+        <div class="flex items-center justify-center gap-2 mb-8">
+            <div class="relative flex items-center justify-center w-3 h-3">
+                <div class="pulse-ring absolute w-3 h-3 rounded-full bg-red-500"></div>
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            </div>
+            <span class="text-xs font-semibold text-red-400 uppercase tracking-widest">Server Offline</span>
+        </div>
+
+        <!-- Main meme emoji -->
+        <div class="text-8xl mb-4 bounce" id="memeEmoji">💀</div>
+
+        <!-- Glitch title -->
+        <h1 class="text-5xl font-black mb-3 glitch gradient-text" data-text="Server said nah fr" id="mainTitle">
+            Server said nah fr
+        </h1>
+
+        <!-- Rotating meme subtitle -->
+        <p class="text-gray-400 text-lg mb-2" id="memeSubtitle">
+            bro the server left the chat 💨
+        </p>
+        <p class="text-gray-600 text-sm mb-8" id="memeCaption">
+            no cap it's giving 404 energy rn
+        </p>
+
+        <!-- Progress bar -->
+        <div class="w-full bg-white/5 rounded-full mb-2 overflow-hidden">
+            <div class="progress-bar"></div>
+        </div>
+        <p class="text-xs text-gray-600 mb-8">trying to reconnect... (it's giving loading screen vibes)</p>
+
+        <!-- Meme cards grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="meme-card p-5">
+                <div class="text-4xl mb-3">🐱</div>
+                <p class="text-sm font-semibold text-white mb-1">The server rn</p>
+                <p class="text-xs text-gray-500">"I'm not lazy, I'm on energy saving mode"</p>
+            </div>
+            <div class="meme-card p-5">
+                <div class="text-4xl mb-3">📱</div>
+                <p class="text-sm font-semibold text-white mb-1">You checking attendance</p>
+                <p class="text-xs text-gray-500">server: "left on read bestie 💅"</p>
+            </div>
+            <div class="meme-card p-5">
+                <div class="text-4xl mb-3">🧃</div>
+                <p class="text-sm font-semibold text-white mb-1">Our devs rn</p>
+                <p class="text-xs text-gray-500">"we're on it fr fr no cap 🔧"</p>
+            </div>
+        </div>
+
+        <!-- Retry button -->
+        <button id="retryBtn" onclick="retryConnection()"
+            class="text-white font-bold py-4 px-10 rounded-2xl text-base mb-4 shadow-2xl">
+            <span id="retryText">slay, try again bestie 🔄</span>
+        </button>
+
+        <!-- Auto retry countdown -->
+        <p class="text-xs text-gray-600 mb-6">
+            auto-retrying in <span id="countdown" class="text-orange-400 font-bold">30</span>s
+            <span class="text-gray-700">• or just touch grass for a sec 🌿</span>
+        </p>
+
+        <!-- Tags -->
+        <div class="flex flex-wrap gap-2 justify-center">
+            <span class="tag" style="background:rgba(249,115,22,.1);color:#f97316;border:1px solid rgba(249,115,22,.2);">
+                🔥 not giving up
+            </span>
+            <span class="tag" style="background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2);">
+                💜 we got you
+            </span>
+            <span class="tag" style="background:rgba(236,72,153,.1);color:#f472b6;border:1px solid rgba(236,72,153,.2);">
+                🌸 stay slay
+            </span>
+        </div>
+
+        <!-- Error details (collapsible) -->
+        <div class="mt-8">
+            <button onclick="toggleDetails()" class="text-xs text-gray-700 hover:text-gray-500 transition-colors">
+                show error details (for the nerds 🤓)
+            </button>
+            <div id="errorDetails" class="hidden mt-3 p-4 rounded-xl text-left"
+                 style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+                <p class="text-xs text-gray-500 font-mono" id="errorText">Connecting to server...</p>
+                <p class="text-xs text-gray-700 mt-1">URL: <span id="errorUrl" class="text-gray-500"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Rotating memes
+        const memes = [
+            { emoji: '💀', title: 'Server said nah fr',       sub: 'bro the server left the chat 💨',          cap: 'no cap it\'s giving 404 energy rn' },
+            { emoji: '😭', title: 'It\'s giving no signal',   sub: 'server ghosted us harder than ur crush 👻', cap: 'main character moment but make it offline' },
+            { emoji: '🫠', title: 'We are so cooked rn',      sub: 'the server said "not today bestie" 💅',     cap: 'touch grass while we fix this fr' },
+            { emoji: '🐢', title: 'Loading... jk lol',        sub: 'server running on fumes rn 🪫',             cap: 'it\'s giving dial-up modem energy' },
+            { emoji: '🤡', title: 'Skill issue (server\'s)',  sub: 'we did not see this coming 🙈',             cap: 'the server said "I need a mental health day"' },
+            { emoji: '😤', title: 'Bruh moment activated',    sub: 'server said "I\'m built different" 💪',     cap: 'different as in... not working lol' },
+            { emoji: '🧊', title: 'Server went cold turkey',  sub: 'it\'s giving frozen screen energy 🥶',      cap: 'ctrl+alt+del but make it fashion' },
+            { emoji: '🫡', title: 'Respect the grind tho',    sub: 'server is on its villain arc rn 😈',        cap: 'we\'re speedrunning the fix fr' },
+        ];
+
+        let memeIdx = 0;
+        function rotateMeme() {
+            memeIdx = (memeIdx + 1) % memes.length;
+            const m = memes[memeIdx];
+            document.getElementById('memeEmoji').textContent    = m.emoji;
+            document.getElementById('mainTitle').textContent    = m.title;
+            document.getElementById('mainTitle').dataset.text   = m.title;
+            document.getElementById('memeSubtitle').textContent = m.sub;
+            document.getElementById('memeCaption').textContent  = m.cap;
+        }
+        setInterval(rotateMeme, 4000);
+
+        // Countdown + auto retry
+        let secs = 30;
+        const countdownEl = document.getElementById('countdown');
+        const timer = setInterval(() => {
+            secs--;
+            countdownEl.textContent = secs;
+            if (secs <= 0) {
+                clearInterval(timer);
+                retryConnection();
+            }
+        }, 1000);
+
+        async function retryConnection() {
+            const btn  = document.getElementById('retryBtn');
+            const text = document.getElementById('retryText');
+            text.textContent = 'checking... 🔍';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/health', { cache: 'no-store' });
+                if (res.ok) {
+                    text.textContent = 'we\'re back bestie! 🎉';
+                    btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+                    setTimeout(() => {
+                        window.location.href = sessionStorage.getItem('offlineFrom') || '/';
+                    }, 800);
+                } else {
+                    throw new Error('Still down');
+                }
+            } catch(e) {
+                text.textContent = 'still cooked 😭 try again?';
+                btn.disabled = false;
+                secs = 30;
+                setTimeout(() => {
+                    text.textContent = 'slay, try again bestie 🔄';
+                    btn.style.background = '';
+                }, 2000);
+            }
+        }
+
+        function toggleDetails() {
+            document.getElementById('errorDetails').classList.toggle('hidden');
+        }
+
+        // Set error info
+        document.getElementById('errorUrl').textContent = sessionStorage.getItem('offlineFrom') || window.location.href;
+        document.getElementById('errorText').textContent = sessionStorage.getItem('offlineError') || 'Could not reach the server. It may be down or restarting.';
+    </script>
+</body>
+</html>
