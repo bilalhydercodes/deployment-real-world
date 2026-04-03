@@ -191,7 +191,6 @@
   </div>
 
   <script src="../js/auth.js"></script>
-  <script src="login-scripts.js"></script>
   <script>
     // Auto-redirect if already logged in
     (function () {
@@ -246,8 +245,8 @@
       setTimeout(() => loginCard.classList.remove('shake'), 600);
     }
 
-    // Staff login mode tracker
-    let staffLoginMode = 'teacher'; // 'teacher' or 'admin'
+    // Staff login mode tracker — must be defined BEFORE login-scripts.js loads
+    var staffLoginMode = 'teacher';
 
     function switchStaffTab(mode) {
       staffLoginMode = mode;
@@ -268,6 +267,8 @@
       }
     }
   </script>
+  <!-- login-scripts.js MUST load last — it depends on staffLoginMode, loginOverlay, shakeCard -->
+  <script src="login-scripts.js"></script>
 </body>
 
 </html>
