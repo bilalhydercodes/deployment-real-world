@@ -50,6 +50,7 @@ if (process.env.JWT_SECRET.length < 32 || process.env.JWT_SECRET.includes('chang
 }
 
 // ── 2. Connect to MongoDB Atlas ───────────────────────────────────────────────
+// Non-blocking — server starts immediately, DB connects in background
 connectDB();
 
 const app = express();
@@ -189,10 +190,12 @@ app.use(express.static(path.join(__dirname, '..', 'client', 'pages')));
 
 // ── 12. Health check ──────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
+    const dbState = ['disconnected', 'connected', 'connecting', 'disconnecting'];
     res.json({
         success: true,
         message: 'College Management API is running',
         environment: process.env.NODE_ENV || 'development',
+        db: dbState[require('mongoose').connection.readyState] || 'unknown',
         timestamp: new Date().toISOString(),
     });
 });
