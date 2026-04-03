@@ -53,6 +53,9 @@ connectDB();
 
 const app = express();
 
+// Trust Railway/Heroku/Render proxy — required for rate limiting and IP detection
+app.set('trust proxy', 1);
+
 // ── 3. Security headers via Helmet ───────────────────────────────────────────
 app.use(helmet({
     contentSecurityPolicy: {
