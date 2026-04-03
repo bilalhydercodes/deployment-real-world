@@ -153,6 +153,13 @@
   <div class="spin" style="width:36px;height:36px;border-width:3px;"></div>
   <p style="color:#ea580c;font-size:.85rem;font-weight:500;letter-spacing:.08em;">LOADING ADMIN PANEL</p>
 </div>
+<!-- Guaranteed loader hide — runs before any external JS -->
+<script>
+  setTimeout(function() {
+    var pl = document.getElementById('pageLoader');
+    if (pl) { pl.style.opacity='0'; setTimeout(function(){ if(pl.parentNode) pl.remove(); }, 400); }
+  }, 800);
+</script>
 
 <!-- Toast -->
 <div id="toast" class="hidden"></div>

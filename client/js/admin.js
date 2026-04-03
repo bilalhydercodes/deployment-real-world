@@ -9,28 +9,33 @@ if (!_user || String(_user.role).toLowerCase() !== 'admin') {
   window.location.href = 'login.html';
 }
 
+/* ── Hide loader IMMEDIATELY — no waiting ───────────────────────── */
+// Must run before anything else so loader never gets stuck
+(function() {
+  function hideLoader() {
+    var pl = document.getElementById('pageLoader');
+    if (pl) {
+      pl.style.transition = 'opacity 0.3s ease';
+      pl.style.opacity = '0';
+      setTimeout(function() { if (pl.parentNode) pl.remove(); }, 350);
+    }
+  }
+  // Hide after 100ms no matter what
+  setTimeout(hideLoader, 100);
+  // Also hide on DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', hideLoader);
+  // Also hide on window load
+  window.addEventListener('load', hideLoader);
+})();
+
 /* ── Init ───────────────────────────────────────────────────────── */
 document.getElementById('adminName').textContent = _user.name || 'Admin';
 
-// Safe fallbacks in case auth.js helpers aren't loaded yet
 var _greeting = (typeof getGreeting === 'function') ? getGreeting() : 'Welcome';
 var _dateStr  = (typeof getFormattedDate === 'function') ? getFormattedDate() : new Date().toLocaleDateString();
 
 document.getElementById('dashGreeting').textContent = _greeting + ', ' + (_user.name || 'Admin') + '! 🛡️';
 document.getElementById('headerDate').textContent = _dateStr;
-
-// Hide page loader — with timeout fallback so it ALWAYS hides
-var _loaderTimer = setTimeout(function() {
-  var pl = document.getElementById('pageLoader');
-  if (pl) { pl.classList.add('hide'); setTimeout(function() { if(pl.parentNode) pl.remove(); }, 400); }
-}, 500);
-
-// Also hide immediately if everything loaded fast
-window.addEventListener('load', function() {
-  clearTimeout(_loaderTimer);
-  var pl = document.getElementById('pageLoader');
-  if (pl) { pl.classList.add('hide'); setTimeout(function() { if(pl.parentNode) pl.remove(); }, 400); }
-});
 
 /* ── Toast ──────────────────────────────────────────────────────── */
 function showToast(msg, type) {
