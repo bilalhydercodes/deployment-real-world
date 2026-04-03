@@ -6,142 +6,257 @@
     <title>Admin Setup – College Management System</title>
     <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="../css/styles.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #ffedd5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid rgba(249,115,22,0.12);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 20px 60px rgba(249,115,22,0.08), 0 4px 16px rgba(0,0,0,0.04);
+            position: relative;
+            z-index: 1;
+        }
+        .inp {
+            width: 100%;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #1f2937;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .inp:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249,115,22,0.12);
+        }
+        .inp::placeholder { color: #9ca3af; }
+        .btn-orange {
+            width: 100%;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 2;
+            display: block;
+            text-align: center;
+        }
+        .btn-orange:hover:not(:disabled) {
+            background: linear-gradient(135deg, #ea580c, #c2410c);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(249,115,22,0.35);
+        }
+        .btn-orange:active:not(:disabled) { transform: translateY(0); }
+        .btn-orange:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-gray {
+            flex: 1;
+            background: #f3f4f6;
+            color: #374151;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-gray:hover { background: #e5e7eb; }
+        .btn-half {
+            flex: 1;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-half:hover:not(:disabled) {
+            background: linear-gradient(135deg, #ea580c, #c2410c);
+            box-shadow: 0 4px 14px rgba(249,115,22,0.3);
+        }
+        .btn-half:disabled { opacity: 0.6; cursor: not-allowed; }
+        .loader {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #toast {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            z-index: 9999;
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            max-width: 360px;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+        #toast.show { display: flex; }
+        #toast.success { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+        #toast.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+        #toast.info    { background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; }
+        @keyframes slideIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+        .rule { font-size: 0.75rem; color: #9ca3af; transition: color 0.2s; }
+        .rule.pass { color: #16a34a; }
+        label { display: block; font-size: 0.8rem; font-weight: 500; color: #6b7280; margin-bottom: 0.4rem; }
+        .hidden { display: none !important; }
+        .pwd-wrap { position: relative; }
+        .pwd-toggle {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; color: #9ca3af; padding: 4px;
+        }
+        .pwd-toggle:hover { color: #374151; }
+        .inp.pwd { padding-right: 2.75rem; }
+    </style>
 </head>
-<body class="gradient-bg flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <div id="toast" class="hidden"></div>
+    <div id="toast"></div>
 
-    <div class="glass-card w-full max-w-md p-8 shadow-2xl">
+    <div class="card">
         <!-- Header -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-600 mb-4 shadow-lg">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        <div style="text-align:center;margin-bottom:1.75rem;">
+            <div style="width:56px;height:56px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;box-shadow:0 8px 24px rgba(249,115,22,0.25);">
+                <svg width="28" height="28" fill="none" stroke="white" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold text-white">Admin Setup</h1>
-            <p class="text-gray-400 text-sm mt-1">Create the administrator account</p>
+            <h1 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 0.25rem;">Admin Setup</h1>
+            <p style="font-size:0.85rem;color:#6b7280;margin:0;">Create the administrator account</p>
         </div>
 
         <!-- Info banner -->
-        <div class="mb-6 p-3 rounded-xl flex items-start gap-3" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);">
-            <svg class="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:12px;padding:0.75rem 1rem;margin-bottom:1.5rem;font-size:0.78rem;color:#9a3412;display:flex;gap:0.5rem;align-items:flex-start;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px;">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <p class="text-xs text-orange-300">This page is for the <strong>first-time admin setup only</strong>. Teachers are added by the admin from the admin panel.</p>
+            <span>This page is for <strong>first-time admin setup only</strong>. Teachers are added by admin from the admin panel.</span>
         </div>
 
-        <!-- Step 1: Details -->
-        <form id="registerForm" class="space-y-4">
-            <div id="step1" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1.5">Full Name</label>
-                    <input type="text" id="name" placeholder="Admin Name"
-                        class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 caret-black
-                               rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1.5">Email Address</label>
-                    <input type="email" id="email" placeholder="admin@school.edu"
-                        class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 caret-black
-                               rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
-                    <div class="relative">
-                        <input type="password" id="password" placeholder="Min 8 chars, uppercase, number, symbol"
-                            class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 caret-black
-                                   rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
-                        <button type="button" id="togglePwd"
-                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-10.94 3.06A9 9 0 0119.94 15.06M3 3l18 18"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <!-- Password strength indicator -->
-                    <div class="mt-2 space-y-1" id="pwdRules">
-                        <p class="text-xs" id="rule-len">  ✗ At least 8 characters</p>
-                        <p class="text-xs" id="rule-upper">✗ One uppercase letter</p>
-                        <p class="text-xs" id="rule-num">  ✗ One number</p>
-                        <p class="text-xs" id="rule-sym">  ✗ One special character (!@#$%^&*)</p>
-                    </div>
-                </div>
-
-                <button type="button" id="sendOtpBtn"
-                    class="w-full text-white font-semibold py-3 rounded-xl text-sm shadow-lg mt-2 transition-all"
-                    style="background:linear-gradient(135deg,#f97316,#ea580c);">
-                    Send Verification OTP
-                </button>
+        <!-- STEP 1 -->
+        <div id="step1">
+            <div style="margin-bottom:1rem;">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" class="inp" placeholder="Admin Name" autocomplete="name" />
             </div>
-
-            <!-- Step 2: OTP -->
-            <div id="step2" class="space-y-4 hidden">
-                <div class="text-center mb-2">
-                    <p class="text-gray-300 text-sm">OTP sent to</p>
-                    <p class="text-orange-400 font-medium" id="otpSentTo"></p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1.5">OTP Code</label>
-                    <input type="text" id="otpCode" placeholder="123456" maxlength="6"
-                        class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 caret-black
-                               rounded-xl px-4 py-3 text-sm text-center text-2xl tracking-widest
-                               focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
-                </div>
-
-                <div class="flex gap-2">
-                    <button type="button" id="backBtn"
-                        class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors">
-                        Back
-                    </button>
-                    <button type="submit" id="registerBtn"
-                        class="flex-1 text-white font-semibold py-3 rounded-xl text-sm shadow-lg transition-all"
-                        style="background:linear-gradient(135deg,#f97316,#ea580c);">
-                        Create Admin Account
+            <div style="margin-bottom:1rem;">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="inp" placeholder="admin@school.edu" autocomplete="email" />
+            </div>
+            <div style="margin-bottom:1rem;">
+                <label for="password">Password</label>
+                <div class="pwd-wrap">
+                    <input type="password" id="password" class="inp pwd" placeholder="Min 8 chars, uppercase, number, symbol" autocomplete="new-password" />
+                    <button type="button" class="pwd-toggle" id="togglePwd" tabindex="-1">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-10.94 3.06A9 9 0 0119.94 15.06M3 3l18 18"/>
+                        </svg>
                     </button>
                 </div>
-
-                <button type="button" id="resendOtpBtn"
-                    class="w-full text-orange-400 hover:text-orange-300 text-sm transition-colors">
-                    Resend OTP
-                </button>
+                <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:2px;">
+                    <span class="rule" id="rule-len">✗ At least 8 characters</span>
+                    <span class="rule" id="rule-upper">✗ One uppercase letter</span>
+                    <span class="rule" id="rule-num">✗ One number</span>
+                    <span class="rule" id="rule-sym">✗ One special character</span>
+                </div>
             </div>
-        </form>
+            <button type="button" id="sendOtpBtn" class="btn-orange" style="margin-top:0.5rem;">
+                Send Verification OTP
+            </button>
+        </div>
 
-        <p class="text-center text-gray-400 text-sm mt-6">
+        <!-- STEP 2 -->
+        <div id="step2" class="hidden">
+            <div style="text-align:center;margin-bottom:1.25rem;">
+                <p style="font-size:0.875rem;color:#6b7280;margin:0 0 0.25rem;">OTP sent to</p>
+                <p id="otpSentTo" style="font-size:0.9rem;font-weight:600;color:#ea580c;margin:0;"></p>
+            </div>
+            <div style="margin-bottom:1.25rem;">
+                <label for="otpCode">OTP Code</label>
+                <input type="text" id="otpCode" class="inp" placeholder="123456" maxlength="6"
+                    style="text-align:center;font-size:1.5rem;letter-spacing:0.3em;font-weight:700;" />
+            </div>
+            <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;">
+                <button type="button" id="backBtn" class="btn-gray">Back</button>
+                <button type="button" id="registerBtn" class="btn-half">Create Admin Account</button>
+            </div>
+            <button type="button" id="resendOtpBtn"
+                style="width:100%;background:none;border:none;color:#ea580c;font-size:0.85rem;cursor:pointer;padding:0.5rem;text-align:center;">
+                Resend OTP
+            </button>
+        </div>
+
+        <p style="text-align:center;font-size:0.85rem;color:#6b7280;margin-top:1.5rem;">
             Already have an account?
-            <a href="login.html" class="text-orange-400 hover:text-orange-300 font-medium transition-colors">Sign In</a>
+            <a href="login.html" style="color:#ea580c;font-weight:600;text-decoration:none;">Sign In</a>
         </p>
     </div>
 
-    <script src="../js/auth.js"></script>
     <script>
-        let otpSent = false;
+        // ── Toast ─────────────────────────────────────────────────────────────
+        function showToast(msg, type = 'info') {
+            const t = document.getElementById('toast');
+            t.className = 'show ' + type;
+            t.textContent = msg;
+            clearTimeout(window._toast);
+            window._toast = setTimeout(() => { t.className = ''; }, 4000);
+        }
 
-        // Password toggle
+        // ── Password toggle ───────────────────────────────────────────────────
         document.getElementById('togglePwd').addEventListener('click', () => {
             const inp = document.getElementById('password');
             inp.type = inp.type === 'password' ? 'text' : 'password';
         });
 
-        // Live password strength checker
-        document.getElementById('password').addEventListener('input', function() {
+        // ── Password strength ─────────────────────────────────────────────────
+        document.getElementById('password').addEventListener('input', function () {
             const v = this.value;
-            const set = (id, ok) => {
+            const check = (id, ok) => {
                 const el = document.getElementById(id);
                 el.textContent = (ok ? '✓' : '✗') + el.textContent.slice(1);
-                el.style.color = ok ? '#4ade80' : '#9ca3af';
+                el.classList.toggle('pass', ok);
             };
-            set('rule-len',   v.length >= 8);
-            set('rule-upper', /[A-Z]/.test(v));
-            set('rule-num',   /[0-9]/.test(v));
-            set('rule-sym',   /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>\/?]/.test(v));
+            check('rule-len',   v.length >= 8);
+            check('rule-upper', /[A-Z]/.test(v));
+            check('rule-num',   /[0-9]/.test(v));
+            check('rule-sym',   /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>\/?]/.test(v));
         });
 
         function validatePassword(pwd) {
@@ -149,7 +264,7 @@
                    /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>\/?]/.test(pwd);
         }
 
-        // Send OTP
+        // ── Send OTP ──────────────────────────────────────────────────────────
         document.getElementById('sendOtpBtn').addEventListener('click', async () => {
             const name     = document.getElementById('name').value.trim();
             const email    = document.getElementById('email').value.trim();
@@ -159,15 +274,15 @@
                 showToast('Please fill all fields', 'error'); return;
             }
             if (!validatePassword(password)) {
-                showToast('Password does not meet requirements', 'error'); return;
+                showToast('Password does not meet all requirements', 'error'); return;
             }
 
             const btn = document.getElementById('sendOtpBtn');
-            btn.innerHTML = '<span class="loader"></span>';
+            btn.innerHTML = '<span class="loader"></span> Sending...';
             btn.disabled = true;
 
             try {
-                const res = await fetch('/api/otp/send-otp', {
+                const res  = await fetch('/api/otp/send-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact: email }),
@@ -175,11 +290,10 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    otpSent = true;
                     document.getElementById('step1').classList.add('hidden');
                     document.getElementById('step2').classList.remove('hidden');
                     document.getElementById('otpSentTo').textContent = email;
-                    showToast('OTP sent! Check your email or server console.', 'success');
+                    showToast('OTP sent! Check your email.', 'success');
                     document.getElementById('otpCode').focus();
                 } else {
                     showToast(data.message || 'Failed to send OTP', 'error');
@@ -193,21 +307,23 @@
             }
         });
 
-        // Back
+        // ── Back ──────────────────────────────────────────────────────────────
         document.getElementById('backBtn').addEventListener('click', () => {
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('step1').classList.remove('hidden');
-            document.getElementById('sendOtpBtn').innerHTML = 'Send Verification OTP';
-            document.getElementById('sendOtpBtn').disabled = false;
+            const btn = document.getElementById('sendOtpBtn');
+            btn.innerHTML = 'Send Verification OTP';
+            btn.disabled = false;
         });
 
-        // Resend OTP
+        // ── Resend OTP ────────────────────────────────────────────────────────
         document.getElementById('resendOtpBtn').addEventListener('click', async () => {
             const email = document.getElementById('email').value.trim();
-            const btn = document.getElementById('resendOtpBtn');
-            btn.textContent = 'Sending...'; btn.disabled = true;
+            const btn   = document.getElementById('resendOtpBtn');
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
             try {
-                const res = await fetch('/api/otp/send-otp', {
+                const res  = await fetch('/api/otp/send-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact: email }),
@@ -218,21 +334,24 @@
             finally { btn.textContent = 'Resend OTP'; btn.disabled = false; }
         });
 
-        // Submit
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!otpSent) { showToast('Please send OTP first', 'error'); return; }
+        // ── Register ──────────────────────────────────────────────────────────
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const email    = document.getElementById('email').value.trim();
+            const otpCode  = document.getElementById('otpCode').value.trim();
+            const name     = document.getElementById('name').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!otpCode || otpCode.length !== 6) {
+                showToast('Enter the 6-digit OTP', 'error'); return;
+            }
 
             const btn = document.getElementById('registerBtn');
             btn.innerHTML = '<span class="loader"></span>';
             btn.disabled = true;
 
-            const email   = document.getElementById('email').value.trim();
-            const otpCode = document.getElementById('otpCode').value.trim();
-
             try {
-                // Verify OTP first
-                const otpRes = await fetch('/api/otp/verify-otp', {
+                // Verify OTP
+                const otpRes  = await fetch('/api/otp/verify-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact: email, otp: otpCode }),
@@ -246,15 +365,11 @@
                     return;
                 }
 
-                // Register admin
-                const res = await fetch('/api/auth/register', {
+                // Register
+                const res  = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name:     document.getElementById('name').value.trim(),
-                        email,
-                        password: document.getElementById('password').value,
-                    }),
+                    body: JSON.stringify({ name, email, password }),
                 });
                 const data = await res.json();
 
@@ -262,7 +377,7 @@
                     localStorage.setItem('token', data.data.token);
                     localStorage.setItem('user', JSON.stringify(data.data));
                     showToast('Admin account created! Redirecting...', 'success');
-                    setTimeout(() => window.location.href = 'admin.html', 800);
+                    setTimeout(() => window.location.href = 'admin.html', 1000);
                 } else {
                     showToast(data.message || 'Registration failed', 'error');
                     btn.innerHTML = 'Create Admin Account';
