@@ -296,6 +296,27 @@
   }
 
   // ── Student login ────────────────────────────────────────────────────────────
+  // Shared fetch with timeout + waking-server hint
+  function fetchWithTimeout(url, opts, btn, originalLabel) {
+    var controller = new AbortController();
+    var wakeHint = setTimeout(function() {
+      if (btn && btn.disabled) btn.innerHTML = '<span class="loader"></span> Waking server...';
+    }, 5000);
+    var timeout = setTimeout(function() { controller.abort(); }, 20000);
+    return fetch(url, Object.assign({}, opts, { signal: controller.signal }))
+      .then(function(res) { clearTimeout(wakeHint); clearTimeout(timeout); return res; })
+      .catch(function(err) {
+        clearTimeout(wakeHint); clearTimeout(timeout);
+        if (err.name === 'AbortError') {
+          hideOverlay();
+          showToast('Server is waking up. Please wait 30s and try again.', 'error');
+          if (btn) { btn.innerHTML = originalLabel; btn.disabled = false; }
+          throw new Error('timeout');
+        }
+        throw err;
+      });
+  }
+
   async function doStudentLogin() {
     var inviteCode = document.getElementById('inviteCode').value.trim().toUpperCase();
     var password   = document.getElementById('studentPassword').value;
@@ -307,10 +328,10 @@
     showOverlay();
 
     try {
-      var res  = await fetch(API_BASE_URL + '/api/auth/student-login', {
+      var res  = await fetchWithTimeout(API_BASE_URL + '/api/auth/student-login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inviteCode, password })
-      });
+      }, btn, 'Enter Student Portal');
       var data = await res.json();
       if (data.success) {
         localStorage.setItem('token', data.data.token);
@@ -343,13 +364,13 @@
         var code = document.getElementById('teacherCode').value.trim().toUpperCase();
         var pwd  = document.getElementById('teacherPwd').value;
         if (!code || !pwd) { hideOverlay(); showToast('Enter Teacher Code and Password', 'error'); btn.innerHTML = 'Continue'; btn.disabled = false; return; }
-        res     = await fetch(API_BASE_URL + '/api/teacher/teacher-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inviteCode: code, password: pwd }) });
+        res     = await fetchWithTimeout(API_BASE_URL + '/api/teacher/teacher-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inviteCode: code, password: pwd }) }, btn, 'Continue');
         contact = code;
       } else {
         var email = document.getElementById('adminEmail').value.trim();
         var pwd2  = document.getElementById('adminPwd').value;
         if (!email || !pwd2) { hideOverlay(); showToast('Enter Email and Password', 'error'); btn.innerHTML = 'Continue'; btn.disabled = false; return; }
-        res     = await fetch(API_BASE_URL + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pwd2 }) });
+        res     = await fetchWithTimeout(API_BASE_URL + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pwd2 }) }, btn, 'Continue');
         contact = email;
       }
 
