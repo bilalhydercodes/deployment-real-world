@@ -32,3 +32,4 @@ otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 otpSchema.index({ contact: 1 });
 
 module.exports = mongoose.model('OTP', otpSchema);
+
