@@ -34,11 +34,11 @@ function lockMessage(user) {
     return `Account temporarily locked due to too many failed attempts. Try again in ${mins} minute(s).`;
 }
 
-// ── Register (Admin only — one admin per system) ──────────────────────────────
+// ── Register (Admin — one admin per email) ───────────────────────────────────
 /**
  * @route  POST /api/auth/register
  * @access Public
- * @desc   Only allows registering the FIRST admin account.
+ * @desc   Allows any new admin to register with a unique email.
  *         Teachers are created by admin from the admin panel.
  */
 const register = async (req, res, next) => {
@@ -53,15 +53,6 @@ const register = async (req, res, next) => {
         }
         if (!isValidPassword(password)) {
             return res.status(400).json({ success: false, message: passwordRules });
-        }
-
-        // Only allow admin registration — teachers are created by admin
-        const existingAdmin = await User.findOne({ role: 'admin' });
-        if (existingAdmin) {
-            return res.status(403).json({
-                success: false,
-                message: 'An admin account already exists. Teachers are added by the admin from the admin panel.',
-            });
         }
 
         const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
