@@ -120,7 +120,7 @@ function showSection(name, btn) {
   if (name === 'fees')        { loadFeesAdmin(); loadStudentsDropdown('feeStudentId'); }
   if (name === 'discipline')  loadAdminDiscipline();
   if (name === 'notices')     loadAdminNotices();
-  if (name === 'timetablemgr'){ loadAdminTimetable(); loadSessions(); }
+  if (name === 'timetablemgr'){ loadAdminTimetable(); loadSessions(); loadTimetableTeacherDropdown(); }
   if (name === 'leavemgr')    loadAdminLeaves();
 }
 
@@ -673,6 +673,18 @@ document.getElementById('adminNoticeForm')?.addEventListener('submit', async e =
 });
 
 /* ── Timetable ──────────────────────────────────────────────────── */
+async function loadTimetableTeacherDropdown() {
+  const sel = document.getElementById('ttTeacher');
+  if (!sel) return;
+  try {
+    const data = await apiFetch('/api/teacher/all');
+    sel.innerHTML = '<option value="">— No teacher assigned —</option>';
+    (data.data || []).forEach(t => {
+      sel.innerHTML += `<option value="${t.name}">${t.name}${t.inviteCode ? ' (' + t.inviteCode + ')' : ''}</option>`;
+    });
+  } catch(e) {}
+}
+
 async function loadAdminTimetable() {
   try {
     const data = await apiFetch('/api/sessions');
