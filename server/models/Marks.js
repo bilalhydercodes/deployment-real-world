@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const marksSchema = new mongoose.Schema(
     {
+        schoolId:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
         studentId:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         enteredBy:  { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         subject:    { type: String, required: true, trim: true },

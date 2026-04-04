@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const feesSchema = new mongoose.Schema(
     {
+        schoolId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
         studentId:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         feeType:     { type: String, enum: ['tuition', 'hostel', 'library', 'examination', 'other'], default: 'tuition' },
         amount:      { type: Number, required: true, min: 0 },

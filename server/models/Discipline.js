@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const disciplineSchema = new mongoose.Schema(
     {
+        schoolId:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
         student:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         reportedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         reason:     { type: String, required: true, trim: true, maxlength: 1000 },

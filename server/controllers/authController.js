@@ -5,9 +5,7 @@ const generateToken = require('../utils/generateToken');
 const { isValidEmail, isValidPassword, isValidRole, passwordRules } = require('../utils/validators');
 
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOCK_DURATION_MS   = 15 * 60 * 1000; // 15 minutes
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
+const LOCK_DURATION_MS   = 15 * 60 * 1000;
 
 async function handleFailedLogin(user) {
     user.loginAttempts = (user.loginAttempts || 0) + 1;
@@ -31,44 +29,36 @@ function isAccountLocked(user) {
 
 function lockMessage(user) {
     const mins = Math.ceil((user.lockUntil - Date.now()) / 60000);
-    return `Account temporarily locked due to too many failed attempts. Try again in ${mins} minute(s).`;
+    return `Account temporarily locked. Try again in ${mins} minute(s).`;
 }
 
-// ── Register (Admin — one admin per email) ───────────────────────────────────
-/**
- * @route  POST /api/auth/register
- * @access Public
- * @desc   Allows any new admin to register with a unique email.
- *         Teachers are created by admin from the admin panel.
- */
+// ── Register (Admin — each school registers their own admin) ──────────────────
 const register = async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
-
-        if (!name || !email || !password) {
+        if (!name || !email || !password)
             return res.status(400).json({ success: false, message: 'Please provide name, email and password' });
-        }
-        if (!isValidEmail(email)) {
+        if (!isValidEmail(email))
             return res.status(400).json({ success: false, message: 'Invalid email format' });
-        }
-        if (!isValidPassword(password)) {
+        if (!isValidPassword(password))
             return res.status(400).json({ success: false, message: passwordRules });
-        }
 
         const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
-        if (existingUser) {
+        if (existingUser)
             return res.status(400).json({ success: false, message: 'Email already registered' });
-        }
 
         const user = await User.create({ name, email, password, role: 'admin' });
-        const token = generateToken(user._id, user.role);
+        // schoolId = admin's own _id — all school data is scoped to this
+        user.schoolId = user._id;
+        await user.save();
 
-        console.log(`[REGISTER] Admin account created: ${user.email}`);
+        const token = generateToken(user._id, user.role);
+        console.log(`[REGISTER] Admin created: ${user.email} schoolId: ${user.schoolId}`);
 
         res.status(201).json({
             success: true,
             message: 'Admin account created successfully',
-            data: { _id: user._id, name: user.name, email: user.email, role: user.role, token },
+            data: { _id: user._id, name: user.name, email: user.email, role: user.role, schoolId: user.schoolId, token },
         });
     } catch (error) {
         next(error);
@@ -79,37 +69,21 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-
-        if (!email || !password) {
+        if (!email || !password)
             return res.status(400).json({ success: false, message: 'Please provide email and password' });
-        }
 
         const user = await User.findOne({ email: email.toLowerCase().trim() });
-
-        // Generic message — don't reveal if email exists
         const invalidMsg = 'Invalid email or password';
-
-        if (!user) {
-            return res.status(401).json({ success: false, message: invalidMsg });
-        }
-
-        // Check brute-force lock
-        if (isAccountLocked(user)) {
-            return res.status(429).json({ success: false, message: lockMessage(user) });
-        }
-
-        if (user.role === 'student') {
-            return res.status(401).json({ success: false, message: 'Students must login via the Student Portal using an Invite Code.' });
-        }
+        if (!user) return res.status(401).json({ success: false, message: invalidMsg });
+        if (isAccountLocked(user)) return res.status(429).json({ success: false, message: lockMessage(user) });
+        if (user.role === 'student')
+            return res.status(401).json({ success: false, message: 'Students must login via the Student Portal.' });
 
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
             await handleFailedLogin(user);
-            const attemptsLeft = MAX_LOGIN_ATTEMPTS - user.loginAttempts;
-            const msg = attemptsLeft <= 0
-                ? lockMessage(user)
-                : `${invalidMsg}. ${attemptsLeft} attempt(s) remaining before lockout.`;
-            return res.status(401).json({ success: false, message: msg });
+            const left = MAX_LOGIN_ATTEMPTS - user.loginAttempts;
+            return res.status(401).json({ success: false, message: left <= 0 ? lockMessage(user) : `${invalidMsg}. ${left} attempt(s) left.` });
         }
 
         await handleSuccessfulLogin(user);
@@ -118,45 +92,31 @@ const login = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            data: { _id: user._id, name: user.name, email: user.email, role: user.role, token },
+            data: { _id: user._id, name: user.name, email: user.email, role: user.role, schoolId: user.schoolId, token },
         });
     } catch (error) {
         next(error);
     }
 };
 
-// ── Student Login (invite code + password) ────────────────────────────────────
+// ── Student Login ─────────────────────────────────────────────────────────────
 const studentLogin = async (req, res, next) => {
     try {
         const { inviteCode, password } = req.body;
-
-        if (!inviteCode || !password) {
+        if (!inviteCode || !password)
             return res.status(400).json({ success: false, message: 'Please provide Invite Code and password' });
-        }
 
         const student = await User.findOne({ inviteCode: inviteCode.toUpperCase(), role: 'student' });
         const invalidMsg = 'Invalid Invite Code or password';
-
-        if (!student) {
-            return res.status(401).json({ success: false, message: invalidMsg });
-        }
-
-        if (isAccountLocked(student)) {
-            return res.status(429).json({ success: false, message: lockMessage(student) });
-        }
-
-        if (student.isLocked) {
-            return res.status(403).json({ success: false, message: 'Your account is locked. Please contact the admin.' });
-        }
+        if (!student) return res.status(401).json({ success: false, message: invalidMsg });
+        if (isAccountLocked(student)) return res.status(429).json({ success: false, message: lockMessage(student) });
+        if (student.isLocked) return res.status(403).json({ success: false, message: 'Your account is locked. Contact admin.' });
 
         const isMatch = await student.matchPassword(password);
         if (!isMatch) {
             await handleFailedLogin(student);
-            const attemptsLeft = MAX_LOGIN_ATTEMPTS - student.loginAttempts;
-            const msg = attemptsLeft <= 0
-                ? lockMessage(student)
-                : `${invalidMsg}. ${attemptsLeft} attempt(s) remaining before lockout.`;
-            return res.status(401).json({ success: false, message: msg });
+            const left = MAX_LOGIN_ATTEMPTS - student.loginAttempts;
+            return res.status(401).json({ success: false, message: left <= 0 ? lockMessage(student) : `${invalidMsg}. ${left} attempt(s) left.` });
         }
 
         await handleSuccessfulLogin(student);
@@ -165,41 +125,30 @@ const studentLogin = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'Student login successful',
-            data: { _id: student._id, name: student.name, role: student.role, inviteCode: student.inviteCode, token },
+            data: { _id: student._id, name: student.name, role: student.role, schoolId: student.schoolId, inviteCode: student.inviteCode, token },
         });
     } catch (error) {
         next(error);
     }
 };
 
-// ── Teacher Login (invite code + password) ────────────────────────────────────
+// ── Teacher Login ─────────────────────────────────────────────────────────────
 const teacherLogin = async (req, res, next) => {
     try {
         const { inviteCode, password } = req.body;
-
-        if (!inviteCode || !password) {
+        if (!inviteCode || !password)
             return res.status(400).json({ success: false, message: 'Please provide Teacher Code and password' });
-        }
 
         const teacher = await User.findOne({ inviteCode: inviteCode.toUpperCase(), role: 'teacher' });
         const invalidMsg = 'Invalid Teacher Code or password';
-
-        if (!teacher) {
-            return res.status(401).json({ success: false, message: invalidMsg });
-        }
-
-        if (isAccountLocked(teacher)) {
-            return res.status(429).json({ success: false, message: lockMessage(teacher) });
-        }
+        if (!teacher) return res.status(401).json({ success: false, message: invalidMsg });
+        if (isAccountLocked(teacher)) return res.status(429).json({ success: false, message: lockMessage(teacher) });
 
         const isMatch = await teacher.matchPassword(password);
         if (!isMatch) {
             await handleFailedLogin(teacher);
-            const attemptsLeft = MAX_LOGIN_ATTEMPTS - teacher.loginAttempts;
-            const msg = attemptsLeft <= 0
-                ? lockMessage(teacher)
-                : `${invalidMsg}. ${attemptsLeft} attempt(s) remaining before lockout.`;
-            return res.status(401).json({ success: false, message: msg });
+            const left = MAX_LOGIN_ATTEMPTS - teacher.loginAttempts;
+            return res.status(401).json({ success: false, message: left <= 0 ? lockMessage(teacher) : `${invalidMsg}. ${left} attempt(s) left.` });
         }
 
         await handleSuccessfulLogin(teacher);
@@ -208,7 +157,7 @@ const teacherLogin = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'Teacher login successful',
-            data: { _id: teacher._id, name: teacher.name, email: teacher.email, role: teacher.role, inviteCode: teacher.inviteCode, token },
+            data: { _id: teacher._id, name: teacher.name, email: teacher.email, role: teacher.role, schoolId: teacher.schoolId, inviteCode: teacher.inviteCode, token },
         });
     } catch (error) {
         next(error);
@@ -227,25 +176,26 @@ const getMe = async (req, res, next) => {
     }
 };
 
-// ── Get all students ──────────────────────────────────────────────────────────
+// ── Get all students (scoped to school) ───────────────────────────────────────
 const getAllStudents = async (req, res, next) => {
     try {
         const page  = Math.max(1, parseInt(req.query.page)  || 1);
         const limit = Math.min(100, parseInt(req.query.limit) || 50);
         const skip  = (page - 1) * limit;
+        const schoolId = req.user.schoolId;
 
         const searchFilter = req.query.search
             ? { name: { $regex: req.query.search, $options: 'i' } }
             : {};
 
-        let filter = { role: 'student', ...searchFilter };
+        let filter = { role: 'student', schoolId, ...searchFilter };
 
         if (req.user.role === 'teacher') {
             const orConditions = [{ teachers: req.user._id }];
             if (req.user.classTeacherOf) orConditions.push({ _id: req.user.classTeacherOf });
-            const sessions = await Session.find({ $or: orConditions }).select('students');
+            const sessions = await Session.find({ $or: orConditions, schoolId }).select('students');
             const ids = [...new Set(sessions.flatMap(s => s.students.map(id => id.toString())))];
-            filter = { _id: { $in: ids }, role: 'student', ...searchFilter };
+            filter = { _id: { $in: ids }, role: 'student', schoolId, ...searchFilter };
         } else if (req.user.role !== 'admin') {
             return res.status(403).json({ success: false, message: 'Forbidden' });
         }
@@ -271,7 +221,6 @@ const updateProfile = async (req, res, next) => {
         const { name, email, password } = req.body;
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-
         if (name) user.name = name.trim();
         if (email) {
             if (!isValidEmail(email)) return res.status(400).json({ success: false, message: 'Invalid email format' });
@@ -282,7 +231,7 @@ const updateProfile = async (req, res, next) => {
             user.password = password;
         }
         await user.save();
-        res.json({ success: true, message: 'Profile updated successfully', data: { _id: user._id, name: user.name, email: user.email, role: user.role } });
+        res.json({ success: true, message: 'Profile updated', data: { _id: user._id, name: user.name, email: user.email, role: user.role } });
     } catch (error) {
         next(error);
     }
@@ -292,16 +241,13 @@ const updateProfile = async (req, res, next) => {
 const adminSetUserPassword = async (req, res, next) => {
     try {
         const { role, newPassword, userId, inviteCode, email } = req.body;
-
         const normalizedRole = String(role || '').toLowerCase().trim();
-        if (!['student', 'teacher'].includes(normalizedRole)) {
+        if (!['student', 'teacher'].includes(normalizedRole))
             return res.status(400).json({ success: false, message: "Role must be 'student' or 'teacher'" });
-        }
-        if (!isValidPassword(newPassword)) {
+        if (!isValidPassword(newPassword))
             return res.status(400).json({ success: false, message: passwordRules });
-        }
 
-        const query = { role: normalizedRole };
+        const query = { role: normalizedRole, schoolId: req.user.schoolId };
         if (userId) query._id = userId;
         else if (inviteCode) query.inviteCode = String(inviteCode).toUpperCase().trim();
         else if (email) query.email = String(email).toLowerCase().trim();
@@ -309,12 +255,10 @@ const adminSetUserPassword = async (req, res, next) => {
 
         const user = await User.findOne(query);
         if (!user) return res.status(404).json({ success: false, message: `${normalizedRole} not found` });
-
         user.password = newPassword;
         user.loginAttempts = 0;
         user.lockUntil = null;
         await user.save();
-
         res.json({ success: true, message: `${normalizedRole} password updated`, data: { _id: user._id, name: user.name, role: user.role } });
     } catch (error) {
         next(error);
@@ -325,18 +269,17 @@ const adminSetUserPassword = async (req, res, next) => {
 async function lockUnlockStudent(req, res, next) {
     try {
         const { studentId, lock } = req.body;
-        if (!studentId || lock === undefined) {
-            return res.status(400).json({ success: false, message: 'studentId and lock (boolean) are required' });
-        }
+        if (!studentId || lock === undefined)
+            return res.status(400).json({ success: false, message: 'studentId and lock are required' });
+
         const student = await User.findOneAndUpdate(
-            { _id: studentId, role: 'student' },
+            { _id: studentId, role: 'student', schoolId: req.user.schoolId },
             { isLocked: Boolean(lock) },
             { new: true }
         ).select('name inviteCode isLocked');
 
         if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
-
-        res.json({ success: true, message: `Student account ${lock ? 'locked' : 'unlocked'}`, data: student });
+        res.json({ success: true, message: `Student ${lock ? 'locked' : 'unlocked'}`, data: student });
     } catch (error) {
         next(error);
     }

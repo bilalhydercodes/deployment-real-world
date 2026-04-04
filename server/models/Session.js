@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const sessionSchema = new mongoose.Schema(
     {
+        schoolId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
         name:        { type: String, required: true, trim: true },
         sessionCode: { type: String, unique: true, required: true, uppercase: true, trim: true },
         students:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
