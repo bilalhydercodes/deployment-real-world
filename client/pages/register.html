@@ -229,6 +229,7 @@
         </p>
     </div>
 
+    <script src="../js/config.js"></script>
     <script>
         // ── Toast ─────────────────────────────────────────────────────────────
         function showToast(msg, type = 'info') {
@@ -282,7 +283,7 @@
             btn.disabled = true;
 
             try {
-                const res  = await fetch('/api/otp/send-otp', {
+                const res  = await fetch(API_BASE_URL + '/api/otp/send-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact: email }),
@@ -323,7 +324,7 @@
             btn.textContent = 'Sending...';
             btn.disabled = true;
             try {
-                const res  = await fetch('/api/otp/send-otp', {
+                const res  = await fetch(API_BASE_URL + '/api/otp/send-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact: email }),
@@ -351,7 +352,7 @@
 
             try {
                 // Verify OTP
-                const otpRes  = await fetch('/api/otp/verify-otp', {
+                const otpRes  = await fetch(API_BASE_URL + '/api/otp/verify-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact: email, otp: otpCode }),
@@ -366,7 +367,7 @@
                 }
 
                 // Register
-                const res  = await fetch('/api/auth/register', {
+                const res  = await fetch(API_BASE_URL + '/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, password }),

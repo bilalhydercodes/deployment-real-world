@@ -189,6 +189,10 @@ app.use('/client', express.static(path.join(__dirname, '..', 'client')));
 app.use(express.static(path.join(__dirname, '..', 'client', 'pages')));
 
 // ── 12. Health check ──────────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+    res.send('Server running');
+});
+
 app.get('/api/health', (req, res) => {
     const dbState = ['disconnected', 'connected', 'connecting', 'disconnecting'];
     res.json({

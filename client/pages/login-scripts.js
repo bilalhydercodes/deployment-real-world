@@ -19,7 +19,7 @@ document.getElementById('studentLoginForm').addEventListener('submit', async (e)
   const password   = document.getElementById('studentPassword').value;
 
   try {
-    const res = await fetch('/api/auth/student-login', {
+    const res = await fetch(API_BASE_URL + '/api/auth/student-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ inviteCode, password }),
@@ -69,7 +69,7 @@ document.getElementById('staffNextBtn').addEventListener('click', async () => {
         return;
       }
 
-      res = await fetch('/api/teacher/teacher-login', {
+      res = await fetch(API_BASE_URL + '/api/teacher/teacher-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inviteCode, password }),
@@ -87,7 +87,7 @@ document.getElementById('staffNextBtn').addEventListener('click', async () => {
         return;
       }
 
-      res = await fetch('/api/auth/login', {
+      res = await fetch(API_BASE_URL + '/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -102,7 +102,7 @@ document.getElementById('staffNextBtn').addEventListener('click', async () => {
       staffContactEmail = contact;
 
       // Send OTP to email (admin) or log to console (teacher with no email)
-      const otpRes = await fetch('/api/otp/send-otp', {
+      const otpRes = await fetch(API_BASE_URL + '/api/otp/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contact }),
@@ -149,7 +149,7 @@ document.getElementById('staffResendOtp').addEventListener('click', async () => 
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/otp/send-otp', {
+    const res = await fetch(API_BASE_URL + '/api/otp/send-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contact: staffContactEmail }),
@@ -182,7 +182,7 @@ document.getElementById('staffLoginForm').addEventListener('submit', async (e) =
   const otpCode = document.getElementById('staffOtpCode').value.trim();
 
   try {
-    const otpRes = await fetch('/api/otp/verify-otp', {
+    const otpRes = await fetch(API_BASE_URL + '/api/otp/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contact: staffContactEmail, otp: otpCode }),

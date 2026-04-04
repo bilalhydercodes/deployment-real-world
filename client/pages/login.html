@@ -229,6 +229,7 @@
   </div>
 </div>
 
+<script src="../js/config.js"></script>
 <script>
   // ── Auto-redirect if already logged in ──────────────────────────────────────
   (function () {
@@ -306,7 +307,7 @@
     showOverlay();
 
     try {
-      var res  = await fetch('/api/auth/student-login', {
+      var res  = await fetch(API_BASE_URL + '/api/auth/student-login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inviteCode, password })
       });
@@ -342,13 +343,13 @@
         var code = document.getElementById('teacherCode').value.trim().toUpperCase();
         var pwd  = document.getElementById('teacherPwd').value;
         if (!code || !pwd) { hideOverlay(); showToast('Enter Teacher Code and Password', 'error'); btn.innerHTML = 'Continue'; btn.disabled = false; return; }
-        res     = await fetch('/api/teacher/teacher-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inviteCode: code, password: pwd }) });
+        res     = await fetch(API_BASE_URL + '/api/teacher/teacher-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inviteCode: code, password: pwd }) });
         contact = code;
       } else {
         var email = document.getElementById('adminEmail').value.trim();
         var pwd2  = document.getElementById('adminPwd').value;
         if (!email || !pwd2) { hideOverlay(); showToast('Enter Email and Password', 'error'); btn.innerHTML = 'Continue'; btn.disabled = false; return; }
-        res     = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pwd2 }) });
+        res     = await fetch(API_BASE_URL + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pwd2 }) });
         contact = email;
       }
 
@@ -357,7 +358,7 @@
         staffData    = data.data;
         staffContact = contact;
         // Send OTP
-        var otpRes  = await fetch('/api/otp/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact }) });
+        var otpRes  = await fetch(API_BASE_URL + '/api/otp/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact }) });
         var otpData = await otpRes.json();
         if (otpData.success) {
           document.getElementById('staffStep1').classList.add('hidden');
@@ -392,7 +393,7 @@
     showOverlay();
 
     try {
-      var res  = await fetch('/api/otp/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact: staffContact, otp }) });
+      var res  = await fetch(API_BASE_URL + '/api/otp/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact: staffContact, otp }) });
       var data = await res.json();
       if (data.success) {
         localStorage.setItem('token', staffData.token);
@@ -419,7 +420,7 @@
     var btn = document.getElementById('staffResendBtn');
     btn.textContent = 'Sending...'; btn.disabled = true;
     try {
-      var res  = await fetch('/api/otp/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact: staffContact }) });
+      var res  = await fetch(API_BASE_URL + '/api/otp/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact: staffContact }) });
       var data = await res.json();
       showToast(data.success ? 'OTP resent!' : (data.message || 'Failed'), data.success ? 'success' : 'error');
     } catch { showToast('Server error.', 'error'); }

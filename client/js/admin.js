@@ -74,7 +74,9 @@ async function apiFetch(url, opts) {
   const token = localStorage.getItem('token');
   const headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
   if (token) headers['Authorization'] = 'Bearer ' + token;
-  const res = await fetch(url, Object.assign({}, opts, { headers }));
+  // Prefix relative URLs with the backend base URL
+  const fullUrl = url.startsWith('http') ? url : API_BASE_URL + url;
+  const res = await fetch(fullUrl, Object.assign({}, opts, { headers }));
   const data = await res.json();
   if (!res.ok) { showToast(data.message || 'An error occurred', 'error'); throw new Error(data.message); }
   return data;
@@ -152,7 +154,7 @@ async function loadDashboard() {
   const h = { Authorization: 'Bearer ' + token };
   try {
     // Single fast endpoint — 6 countDocuments in parallel server-side
-    const res = await fetch('/api/admin/stats', { headers: h });
+    const res = await fetch(API_BASE_URL + '/api/admin/stats', { headers: h });
     const { data } = await res.json();
     if (!data) return;
     document.getElementById('totalStudents').textContent   = data.students   ?? '—';

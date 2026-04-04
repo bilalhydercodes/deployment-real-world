@@ -259,7 +259,7 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch('/api/health', { cache: 'no-store' });
+                const res = await fetch((typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : '') + '/api/health', { cache: 'no-store' });
                 if (res.ok) {
                     text.textContent = 'we\'re back bestie! 🎉';
                     btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';

@@ -556,6 +556,7 @@
     </main>
 
     <script src="../js/auth.js"></script>
+    <script src="../js/config.js"></script>
     <script src="../js/attendance.js"></script>
     <script src="../js/marks.js"></script>
     <script>
@@ -578,7 +579,8 @@
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
-            const res = await fetch(url, { ...options, headers });
+            const fullUrl = url.startsWith('http') ? url : API_BASE_URL + url;
+            const res = await fetch(fullUrl, { ...options, headers });
             const data = await res.json();
             if (!res.ok) {
                 showToast(data.message || 'An error occurred', 'error');
@@ -768,8 +770,8 @@
 
             try {
                 const [attRes, mrkRes] = await Promise.all([
-                    fetch(`/api/attendance/${studentId}`, { headers }),
-                    fetch(`/api/marks/${studentId}`, { headers }),
+                    fetch(API_BASE_URL + `/api/attendance/${studentId}`, { headers }),
+                    fetch(API_BASE_URL + `/api/marks/${studentId}`, { headers }),
                 ]);
                 const [att, mrk] = await Promise.all([attRes.json(), mrkRes.json()]);
 
