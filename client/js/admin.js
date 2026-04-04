@@ -120,7 +120,7 @@ function showSection(name, btn) {
   if (name === 'fees')        { loadFeesAdmin(); loadStudentsDropdown('feeStudentId'); }
   if (name === 'discipline')  loadAdminDiscipline();
   if (name === 'notices')     loadAdminNotices();
-  if (name === 'timetablemgr'){ loadAdminTimetable(); loadSessions(); loadTimetableTeacherDropdown(); }
+  if (name === 'timetablemgr'){ loadAdminTimetable(); }
   if (name === 'leavemgr')    loadAdminLeaves();
 }
 
@@ -672,62 +672,118 @@ document.getElementById('adminNoticeForm')?.addEventListener('submit', async e =
   } catch(e) {}
 });
 
-/* ── Timetable ──────────────────────────────────────────────────── */
-async function loadTimetableTeacherDropdown() {
-  const sel = document.getElementById('ttTeacher');
-  if (!sel) return;
-  try {
-    const data = await apiFetch('/api/teacher/all');
-    sel.innerHTML = '<option value="">— No teacher assigned —</option>';
-    (data.data || []).forEach(t => {
-      sel.innerHTML += `<option value="${t.name}">${t.name}${t.inviteCode ? ' (' + t.inviteCode + ')' : ''}</option>`;
-    });
-  } catch(e) {}
-}
-
+/* ── Timetable Builder ──────────────────────────────────────────── */
+// Loads sessions into the picker and teacher dropdown
 async function loadAdminTimetable() {
   try {
-    const data = await apiFetch('/api/sessions');
+    const [sessData, teachData] = await Promise.all([
+      apiFetch('/api/sessions'),
+      apiFetch('/api/teacher/all'),
+    ]);
+    // Session picker
     const sel = document.getElementById('ttAdminSession');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Select Class</option>';
-    (data.data || []).forEach(s => { sel.innerHTML += '<option value="' + s._id + '">' + s.name + ' (' + s.sessionCode + ')</option>'; });
+    if (sel) {
+      sel.innerHTML = '<option value="">— Choose a class —</option>';
+      (sessData.data || []).forEach(s => {
+        sel.innerHTML += `<option value="${s._id}">${s.name} (${s.sessionCode})</option>`;
+      });
+    }
+    // Teacher dropdown
+    const tsel = document.getElementById('ttTeacher');
+    if (tsel) {
+      tsel.innerHTML = '<option value="">— None —</option>';
+      (teachData.data || []).forEach(t => {
+        tsel.innerHTML += `<option value="${t.name}">${t.name}</option>`;
+      });
+    }
   } catch(e) {}
 }
 
-document.getElementById('ttAdminSession')?.addEventListener('change', function() { if (this.value) loadTimetableView(this.value); });
-
-document.getElementById('adminTimetableForm')?.addEventListener('submit', async e => {
-  e.preventDefault();
+// Called when admin picks a session — shows the builder and loads existing entries
+async function loadTimetableBuilder() {
   const sessionId = document.getElementById('ttAdminSession').value;
-  if (!sessionId) return showToast('Select a class', 'error');
-  try {
-    await apiFetch('/api/timetable', { method: 'POST', body: JSON.stringify({
-      sessionId, dayOfWeek: document.getElementById('ttDay').value,
-      subject: document.getElementById('ttSubject').value,
-      startTime: document.getElementById('ttStart').value,
-      endTime: document.getElementById('ttEnd').value,
-      teacher: document.getElementById('ttTeacher').value,
-    })});
-    showToast('Entry added!', 'success'); e.target.reset(); loadTimetableView(sessionId);
-  } catch(e) {}
-});
+  const builder = document.getElementById('ttBuilder');
+  if (!sessionId) { builder.classList.add('hidden'); return; }
+  builder.classList.remove('hidden');
+  await renderWeekGrid(sessionId);
+}
 
-async function loadTimetableView(sessionId) {
-  const c = document.getElementById('adminTimetableList');
+// Renders the full weekly grid for a session
+async function renderWeekGrid(sessionId) {
+  const grid = document.getElementById('ttWeekGrid');
+  grid.innerHTML = '<p class="text-center text-gray-400 py-6"><span class="spin"></span></p>';
   try {
     const data = await apiFetch('/api/timetable/' + sessionId);
-    if (!data.data?.length) { c.innerHTML = '<p class="text-center text-gray-400 py-8">No entries yet</p>'; return; }
-    c.innerHTML = '<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Teacher</th><th>Action</th></tr></thead><tbody>' +
-      data.data.map(e => '<tr><td>' + e.dayOfWeek + '</td><td class="font-mono text-xs">' + e.startTime + ' – ' + e.endTime + '</td><td>' + e.subject + '</td><td class="text-gray-500">' + (e.teacher||'—') + '</td><td><button onclick="deleteTTEntry(\''+e._id+'\',\''+sessionId+'\')" class="btn-danger" style="font-size:.72rem;">Delete</button></td></tr>').join('') +
-      '</tbody></table></div></div>';
+    const entries = data.data || [];
+    const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const grouped = {};
+    days.forEach(d => grouped[d] = []);
+    entries.forEach(e => { if (grouped[e.dayOfWeek]) grouped[e.dayOfWeek].push(e); });
+
+    const activeDays = days.filter(d => grouped[d].length > 0);
+    if (!activeDays.length) {
+      grid.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">No periods yet. Add one above.</p>';
+      return;
+    }
+
+    grid.innerHTML = activeDays.map(day => `
+      <div class="card overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+          <h4 class="font-semibold text-gray-800 text-sm">${day}</h4>
+          <span class="text-xs text-gray-400">${grouped[day].length} period${grouped[day].length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="divide-y divide-gray-50">
+          ${grouped[day].map(e => `
+            <div class="flex items-center gap-4 px-5 py-3">
+              <span class="font-mono text-xs text-indigo-600 w-28 shrink-0">${e.startTime} – ${e.endTime}</span>
+              <div class="flex-1">
+                <p class="font-medium text-gray-900 text-sm">${e.subject}</p>
+                ${e.teacher ? `<p class="text-xs text-gray-400">👤 ${e.teacher}</p>` : ''}
+              </div>
+              <button onclick="deleteTTEntry('${e._id}','${sessionId}')"
+                class="text-xs text-red-400 hover:text-red-600 transition-colors px-2 py-1 rounded hover:bg-red-50">
+                ✕ Remove
+              </button>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    grid.innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Failed to load</p>';
+  }
+}
+
+// Add a single period
+async function addTimetableRow() {
+  const sessionId = document.getElementById('ttAdminSession').value;
+  const subject   = document.getElementById('ttSubject').value.trim();
+  const startTime = document.getElementById('ttStart').value;
+  const endTime   = document.getElementById('ttEnd').value;
+  const dayOfWeek = document.getElementById('ttDay').value;
+  const teacher   = document.getElementById('ttTeacher').value;
+
+  if (!sessionId) return showToast('Select a class first', 'error');
+  if (!subject)   return showToast('Enter a subject', 'error');
+  if (!startTime || !endTime) return showToast('Enter start and end time', 'error');
+
+  try {
+    await apiFetch('/api/timetable', { method: 'POST', body: JSON.stringify({ sessionId, dayOfWeek, subject, startTime, endTime, teacher }) });
+    showToast(subject + ' added to ' + dayOfWeek, 'success');
+    // Clear subject/time fields but keep day/teacher for quick repeat entry
+    document.getElementById('ttSubject').value = '';
+    document.getElementById('ttStart').value = '';
+    document.getElementById('ttEnd').value = '';
+    await renderWeekGrid(sessionId);
   } catch(e) {}
 }
 
 async function deleteTTEntry(id, sessionId) {
-  confirm2('Delete Entry', 'Remove this timetable entry?', async () => {
-    try { await apiFetch('/api/timetable/' + id, { method: 'DELETE' }); showToast('Deleted', 'success'); loadTimetableView(sessionId); } catch(e) {}
-  });
+  confirm2('Remove Period', 'Remove this period from the timetable?', async () => {
+    try {
+      await apiFetch('/api/timetable/' + id, { method: 'DELETE' });
+      showToast('Period removed', 'success');
+      renderWeekGrid(sessionId);
+    } catch(e) {}
+  }, 'Remove');
 }
 
 /* ── Leave Requests ─────────────────────────────────────────────── */

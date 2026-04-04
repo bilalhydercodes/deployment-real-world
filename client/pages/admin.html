@@ -663,25 +663,58 @@
 
     <!-- ══ TIMETABLE ══════════════════════════════════════════════════ -->
     <section id="sec-timetablemgr" class="sec">
-      <div class="sec-header"><div><h2 class="sec-title">Timetable</h2><p class="sec-sub">Manage class schedules</p></div></div>
-      <div class="card p-6 mb-5">
-        <h3 class="font-semibold text-gray-900 mb-4">Add Entry</h3>
-        <form id="adminTimetableForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div><label class="lbl">Class</label><select id="ttAdminSession" class="inp"><option value="">Select Class</option></select></div>
-          <div><label class="lbl">Day</label>
-            <select id="ttDay" class="inp">
-              <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
-              <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+      <div class="sec-header"><div><h2 class="sec-title">Timetable</h2><p class="sec-sub">Build the weekly schedule for a class</p></div></div>
+
+      <!-- Step 1: Pick a session -->
+      <div class="card p-5 mb-5">
+        <div class="flex flex-col sm:flex-row gap-3 items-end">
+          <div class="flex-1">
+            <label class="lbl">Select Class to Edit</label>
+            <select id="ttAdminSession" class="inp" onchange="loadTimetableBuilder()">
+              <option value="">— Choose a class —</option>
             </select>
           </div>
-          <div><label class="lbl">Subject</label><input type="text" id="ttSubject" required class="inp" placeholder="e.g. Mathematics"/></div>
-          <div><label class="lbl">Start Time</label><input type="time" id="ttStart" required class="inp"/></div>
-          <div><label class="lbl">End Time</label><input type="time" id="ttEnd" required class="inp"/></div>
-          <div><label class="lbl">Teacher (Optional)</label><select id="ttTeacher" class="inp"><option value="">— No teacher assigned —</option></select></div>
-          <div class="md:col-span-3 flex justify-end"><button type="submit" class="btn-primary">Add Entry</button></div>
-        </form>
+        </div>
       </div>
-      <div id="adminTimetableList"><p class="text-center text-gray-400 py-8">Select a class above to view entries</p></div>
+
+      <!-- Step 2: Weekly builder (shown after session selected) -->
+      <div id="ttBuilder" class="hidden">
+        <!-- Add row form -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-semibold text-gray-800 mb-4 text-sm">➕ Add a Period</h3>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+            <div>
+              <label class="lbl">Day</label>
+              <select id="ttDay" class="inp">
+                <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl">Subject</label>
+              <input type="text" id="ttSubject" class="inp" placeholder="e.g. Mathematics" />
+            </div>
+            <div>
+              <label class="lbl">Start</label>
+              <input type="time" id="ttStart" class="inp" />
+            </div>
+            <div>
+              <label class="lbl">End</label>
+              <input type="time" id="ttEnd" class="inp" />
+            </div>
+            <div>
+              <label class="lbl">Teacher</label>
+              <select id="ttTeacher" class="inp"><option value="">— None —</option></select>
+            </div>
+          </div>
+          <div class="flex justify-end mt-3">
+            <button onclick="addTimetableRow()" class="btn-primary text-sm">Add Period</button>
+          </div>
+        </div>
+
+        <!-- Weekly grid — one card per day -->
+        <div id="ttWeekGrid" class="space-y-4"></div>
+      </div>
     </section>
 
     <!-- ══ LEAVE REQUESTS ═════════════════════════════════════════════ -->
