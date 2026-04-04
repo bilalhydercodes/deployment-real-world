@@ -720,6 +720,15 @@
         // Set today's date
         document.getElementById('bulkAttDate').value = new Date().toISOString().split('T')[0];
 
+        // Restore last used subject from localStorage
+        const _lastSubject = localStorage.getItem('tt_lastSubject');
+        if (_lastSubject) document.getElementById('bulkAttSubject').value = _lastSubject;
+
+        // Save subject on change
+        document.getElementById('bulkAttSubject').addEventListener('change', function() {
+            if (this.value.trim()) localStorage.setItem('tt_lastSubject', this.value.trim());
+        });
+
         let activeBulkStudents = [];
 
         async function loadTeacherSessions() {
@@ -742,6 +751,9 @@
             const date = document.getElementById('bulkAttDate').value;
 
             if (!sessionId || !subject || !date) return showToast('Fill all fields', 'error');
+
+            // Remember subject for next time
+            localStorage.setItem('tt_lastSubject', subject);
 
             const btn = document.getElementById('loadBulkBtn');
             btn.disabled = true;

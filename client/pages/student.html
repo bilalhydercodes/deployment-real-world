@@ -190,6 +190,17 @@
                 </div>
 
                 <!-- Quick Notices Preview -->
+                <div class="glass-card p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Today's Classes
+                    </h3>
+                    <div id="dashTodayClasses" class="space-y-2 text-sm text-gray-400">Loading...</div>
+                </div>
+
+                <!-- Quick Notices Preview -->
                 <div class="glass-card p-5">
                     <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
                         <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -950,8 +961,6 @@
                 if (att.summary) {
                     document.getElementById('myAttPerc').textContent = att.summary.percentage;
                     document.getElementById('myAttSummary').textContent = `${att.summary.present}P / ${att.summary.absent}A / ${att.summary.late}L`;
-
-                    // Low attendance badge
                     const pct = parseFloat(att.summary.percentage);
                     if (pct < 75) {
                         document.getElementById('lowAttAlert').classList.remove('hidden');
@@ -966,6 +975,34 @@
                     document.getElementById('myPendingFees').textContent = `₹${fee.summary.pending.toLocaleString()}`;
                     document.getElementById('myFeesSummary').textContent = `Paid: ₹${fee.summary.paid.toLocaleString()}`;
                 }
+
+                // Today's classes from timetable
+                const todayEl = document.getElementById('dashTodayClasses');
+                const todayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+                const sessionId = await getMySession();
+                if (sessionId) {
+                    try {
+                        const ttRes = await apiFetch(`/api/timetable/${sessionId}`);
+                        const ttData = await ttRes.json();
+                        const todayClasses = (ttData.data || []).filter(e => e.dayOfWeek === todayName)
+                            .sort((a, b) => a.startTime.localeCompare(b.startTime));
+                        if (todayClasses.length) {
+                            todayEl.innerHTML = todayClasses.map(e =>
+                                `<div class="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
+                                    <span class="font-mono text-xs text-amber-400 w-24 shrink-0">${e.startTime} – ${e.endTime}</span>
+                                    <div>
+                                        <p class="text-sm text-white font-medium">${e.subject}</p>
+                                        ${e.teacher ? `<p class="text-xs text-gray-500">👤 ${e.teacher}</p>` : ''}
+                                    </div>
+                                </div>`).join('');
+                        } else {
+                            todayEl.innerHTML = `<p class="text-xs text-gray-600">No classes scheduled for ${todayName}.</p>`;
+                        }
+                    } catch(e) { todayEl.innerHTML = '<p class="text-xs text-gray-600">—</p>'; }
+                } else {
+                    todayEl.innerHTML = '<p class="text-xs text-gray-600">Not enrolled in a session yet.</p>';
+                }
+
                 // Dashboard notice preview (latest 3)
                 const dashNotices = document.getElementById('dashNotices');
                 if (notices.success && notices.data?.length) {
