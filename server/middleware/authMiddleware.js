@@ -38,6 +38,27 @@ const protect = async (req, res, next) => {
             }
 
             req.user = user;
+
+            // ── Backward compat: fix missing schoolId for existing accounts ──
+            // Old admin accounts created before schoolId was added won't have it.
+            // Auto-heal: admin's schoolId = their own _id.
+            // For teachers/students created before migration, use createdBy chain.
+            if (!req.user.schoolId) {
+                const UserModel = require('../models/User');
+                if (user.role === 'admin') {
+                    await UserModel.findByIdAndUpdate(user._id, { schoolId: user._id });
+                    req.user.schoolId = user._id;
+                } else if (user.createdBy) {
+                    // Find the admin who created this user and use their schoolId
+                    const creator = await UserModel.findById(user.createdBy).select('schoolId role _id').lean();
+                    const schoolId = creator?.schoolId || creator?._id;
+                    if (schoolId) {
+                        await UserModel.findByIdAndUpdate(user._id, { schoolId });
+                        req.user.schoolId = schoolId;
+                    }
+                }
+            }
+
             next();
         } catch (error) {
             if (error.name === 'TokenExpiredError') {
