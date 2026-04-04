@@ -282,12 +282,23 @@
             btn.innerHTML = '<span class="loader"></span> Sending...';
             btn.disabled = true;
 
+            // Timeout after 15s — Render free tier cold starts can take ~30s
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 15000);
+            // After 5s, update button text to hint at cold start
+            const wakeHint = setTimeout(() => {
+                if (btn.disabled) btn.innerHTML = '<span class="loader"></span> Waking server...';
+            }, 5000);
+
             try {
                 const res  = await fetch(API_BASE_URL + '/api/otp/send-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact: email }),
+                    signal: controller.signal,
                 });
+                clearTimeout(timeout);
+                clearTimeout(wakeHint);
                 const data = await res.json();
 
                 if (data.success) {
@@ -302,7 +313,13 @@
                     btn.disabled = false;
                 }
             } catch (err) {
-                showToast('Server error. Please try again.', 'error');
+                clearTimeout(timeout);
+                clearTimeout(wakeHint);
+                if (err.name === 'AbortError') {
+                    showToast('Server is waking up (Render cold start). Please wait 30s and try again.', 'error');
+                } else {
+                    showToast('Server error. Please try again.', 'error');
+                }
                 btn.innerHTML = 'Send Verification OTP';
                 btn.disabled = false;
             }
