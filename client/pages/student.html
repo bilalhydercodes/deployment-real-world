@@ -667,7 +667,15 @@
                 const sel = document.getElementById(selId);
                 const currentVal = sel.value;
                 if (!data.success || !data.data?.length) { sel.innerHTML = '<option value="">No sessions found</option>'; return; }
-                sel.innerHTML = '<option value="">-- Select Session --</option>' + data.data.map(s => `<option value="${s._id}" ${s._id === currentVal ? 'selected' : ''}>${s.name} (${s.sessionCode})</option>`).join('');
+                // Show only sessions this student belongs to
+                const mySessions = data.data.filter(s =>
+                    s.students && s.students.some(id => {
+                        const sid = id?._id || id;
+                        return String(sid) === String(studentId);
+                    })
+                );
+                const list = mySessions.length > 0 ? mySessions : data.data;
+                sel.innerHTML = '<option value="">-- Select Session --</option>' + list.map(s => `<option value="${s._id}" ${s._id === currentVal ? 'selected' : ''}>${s.name} (${s.sessionCode})</option>`).join('');
             } catch (e) { }
         }
 

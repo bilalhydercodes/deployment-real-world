@@ -9,7 +9,7 @@ router.use(protect);
 // Admin & Teacher Routes
 router.post('/create', authorize('admin'), createSession);
 router.post('/add-students', authorize('admin'), addStudentsToSession);
-router.get('/', authorize('admin', 'teacher'), getSessions);
+router.get('/', authorize('admin', 'teacher', 'student'), getSessions);
 
 // Teacher Routes
 router.post('/claim', authorize('teacher'), claimSession);

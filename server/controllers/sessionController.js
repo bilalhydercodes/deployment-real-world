@@ -42,6 +42,8 @@ exports.getSessions = async (req, res, next) => {
             const orConditions = [{ teachers: req.user._id }];
             if (req.user.classTeacherOf) orConditions.push({ _id: req.user.classTeacherOf });
             query = { schoolId, $or: orConditions };
+        } else if (role === 'student') {
+            query = { schoolId, students: req.user._id };
         }
         const sessions = await Session.find(query).populate('students', 'name email inviteCode');
         cache.set(cacheKey, sessions, 60); // 1 minute
