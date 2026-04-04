@@ -261,6 +261,10 @@
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
       Leave Requests
     </button>
+    <button class="nav-item" onclick="showSection('classrequests',this)">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Class Requests
+    </button>
     <button class="nav-item" onclick="showSection('assignments',this)">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
       Assignments
@@ -693,6 +697,30 @@
       </div>
     </section>
 
+    </section>
+
+    <!-- ══ CLASS REQUESTS ════════════════════════════════════════════ -->
+    <section id="sec-classrequests" class="sec">
+      <div class="sec-header"><div><h2 class="sec-title">Class Requests</h2><p class="sec-sub">Review teacher requests for extra or different class slots</p></div>
+        <div class="flex gap-2">
+          <select id="crStatusFilter" onchange="loadAdminClassRequests()" class="inp text-sm">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="tbl">
+            <thead><tr><th>Teacher</th><th>Session</th><th>Day</th><th>Subject</th><th>Time</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="classRequestsAdminTable"><tr><td colspan="8" class="text-center text-gray-400 py-10"><span class="spin"></span></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- ══ ASSIGNMENTS (Coming Soon) ══════════════════════════════════ -->
     <section id="sec-assignments" class="sec">
       <div class="sec-header"><div><h2 class="sec-title">Assignments</h2><p class="sec-sub">Manage class assignments</p></div></div>
@@ -887,6 +915,7 @@ window.showSection = function(name, el) {
   if (name === 'bulkpwd')   loadBulkPwdUsers();
   if (name === 'auditlog')  loadAuditLog();
   if (name === 'settings')  loadSettings();
+  if (name === 'classrequests') loadAdminClassRequests();
 };
 
 // ── REPORTS ───────────────────────────────────────────────────────────────────
@@ -1098,6 +1127,56 @@ document.getElementById('adminPwdForm').addEventListener('submit', async e => {
     logAuditEntry('Password Changed', 'Own account');
   } catch(e) {}
 });
+
+// ── CLASS REQUESTS ────────────────────────────────────────────────────────────
+async function loadAdminClassRequests() {
+  const tbody = document.getElementById('classRequestsAdminTable');
+  tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8"><span class="spin"></span></td></tr>';
+  const status = document.getElementById('crStatusFilter')?.value || '';
+  try {
+    let url = '/api/class-requests';
+    if (status) url += '?status=' + status;
+    const data = await apiFetch(url);
+    const list = data.data || [];
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-400 py-10">No requests found</td></tr>';
+      return;
+    }
+    const statusBadge = { pending: 'badge-late', approved: 'badge-present', rejected: 'badge-absent' };
+    tbody.innerHTML = list.map(r => `
+      <tr>
+        <td class="font-medium">${r.teacher?.name || '—'}</td>
+        <td>${r.sessionId?.name || '—'}</td>
+        <td>${r.dayOfWeek}</td>
+        <td>${r.subject}</td>
+        <td class="font-mono text-xs">${r.startTime} – ${r.endTime}</td>
+        <td class="text-xs text-gray-500 max-w-xs truncate">${r.reason || '—'}</td>
+        <td><span class="badge ${statusBadge[r.status] || ''}">${r.status}</span></td>
+        <td>
+          ${r.status === 'pending' ? `
+            <div class="flex gap-1">
+              <button onclick="reviewClassRequest('${r._id}','approved')" class="btn-success" style="font-size:.7rem;padding:.25rem .6rem;">✓ Approve</button>
+              <button onclick="reviewClassRequest('${r._id}','rejected')" class="btn-danger" style="font-size:.7rem;padding:.25rem .6rem;">✗ Reject</button>
+            </div>` : '<span class="text-xs text-gray-400">Reviewed</span>'}
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-red-400 py-8">Failed to load</td></tr>';
+  }
+}
+
+async function reviewClassRequest(id, status) {
+  const note = status === 'rejected' ? prompt('Rejection reason (optional):') : '';
+  try {
+    await apiFetch('/api/class-requests/' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, reviewNote: note || '' }),
+    });
+    showToast(status === 'approved' ? 'Approved! Added to timetable.' : 'Request rejected.', status === 'approved' ? 'success' : 'info');
+    loadAdminClassRequests();
+    logAuditEntry('Class Request ' + status, id);
+  } catch(e) {}
+}
 </script>
 </body>
 </html>

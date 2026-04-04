@@ -97,7 +97,7 @@ const _secNames = {
   dashboard:'Dashboard', students:'Students', teachers:'Teachers',
   sessions:'Classes', attendance:'Attendance', marks:'Marks',
   fees:'Fees', discipline:'Discipline', notices:'Notices',
-  timetablemgr:'Timetable', leavemgr:'Leave Requests'
+  timetablemgr:'Timetable', leavemgr:'Leave Requests', classrequests:'Class Requests'
 };
 function showSection(name, btn) {
   document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));

@@ -76,6 +76,13 @@
                 </svg>
                 My Timetable
             </button>
+            <button class="nav-link" onclick="showSection('classrequest')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4v16m8-8H4" />
+                </svg>
+                Request Class
+            </button>
             <button class="nav-link" onclick="showSection('discipline')">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -381,6 +388,73 @@
                 </div>
             </section>
 
+            <!-- Request Extra Class -->
+            <section id="sec-classrequest" class="section">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2">Request a Class</h2>
+                    <p class="text-gray-400 text-sm">Submit a request for an extra or different class slot. Admin will review and approve.</p>
+                </div>
+
+                <!-- Request Form -->
+                <div class="glass-card p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">New Class Request</h3>
+                    <form id="classRequestForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Session / Class</label>
+                            <select id="crSession" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="">Select Session</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Day</label>
+                            <select id="crDay" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                                <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Subject</label>
+                            <input type="text" id="crSubject" required placeholder="e.g. Extra Mathematics"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Start Time</label>
+                            <input type="time" id="crStart" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">End Time</label>
+                            <input type="time" id="crEnd" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Reason (optional)</label>
+                            <input type="text" id="crReason" placeholder="Why is this class needed?"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div class="md:col-span-2 flex justify-end">
+                            <button type="submit" class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">
+                                Submit Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- My Requests -->
+                <div class="glass-card overflow-hidden">
+                    <div class="p-4 border-b border-white/5 flex items-center justify-between">
+                        <h3 class="font-semibold text-white text-sm">My Requests</h3>
+                        <button onclick="loadMyClassRequests()" class="text-xs text-indigo-400 hover:text-indigo-300">Refresh</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="tbl w-full">
+                            <thead><tr><th>Session</th><th>Day</th><th>Subject</th><th>Time</th><th>Status</th><th>Note</th></tr></thead>
+                            <tbody id="classRequestsTable">
+                                <tr><td colspan="6" class="text-center text-gray-400 py-8">No requests yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- Discipline Reports -->
             <section id="sec-discipline" class="section">
                 <h2 class="text-2xl font-bold text-white mb-2">Discipline Reports</h2>
@@ -615,6 +689,7 @@
         const sectionNames = {
             attendance: 'Mark Attendance', marks: 'Enter Marks', viewAttendance: 'View Records',
             timetable: 'My Timetable', discipline: 'Discipline Reports',
+            classrequest: 'Request Class',
             assignments: 'Assignments', notices: 'Notices Board',
             leave: 'Apply for Leave', studentprofile: 'Student Profile'
         };
@@ -631,6 +706,9 @@
             if (name === 'timetable') {
                 loadTeacherSessionsIntoSelect();
                 loadTeacherTimetable();
+            } else if (name === 'classrequest') {
+                loadClassRequestSessions();
+                loadMyClassRequests();
             } else if (['attendance', 'marks', 'viewAttendance'].includes(name)) {
                 fetchStudents();
             } else if (name === 'discipline') {
@@ -1210,6 +1288,68 @@
             showToast('Failed to load profile', 'error');
         }
     }
+
+    // ── CLASS REQUESTS ────────────────────────────────────────────────────────
+    async function loadClassRequestSessions() {
+        const sel = document.getElementById('crSession');
+        if (!sel) return;
+        try {
+            const res = await apiFetch('/api/sessions');
+            sel.innerHTML = '<option value="">Select Session</option>';
+            (res.data || []).forEach(s => {
+                sel.innerHTML += `<option value="${s._id}">${s.name} (${s.sessionCode})</option>`;
+            });
+        } catch(e) {}
+    }
+
+    async function loadMyClassRequests() {
+        const tbody = document.getElementById('classRequestsTable');
+        if (!tbody) return;
+        try {
+            const res = await apiFetch('/api/class-requests/my');
+            const list = res.data || [];
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8">No requests yet</td></tr>';
+                return;
+            }
+            const statusBadge = { pending: 'badge-late', approved: 'badge-present', rejected: 'badge-absent' };
+            tbody.innerHTML = list.map(r => `
+                <tr>
+                    <td class="text-sm">${r.sessionId?.name || '—'}</td>
+                    <td class="text-sm">${r.dayOfWeek}</td>
+                    <td class="text-sm">${r.subject}</td>
+                    <td class="text-xs font-mono">${r.startTime} – ${r.endTime}</td>
+                    <td><span class="badge ${statusBadge[r.status] || ''}">${r.status}</span></td>
+                    <td class="text-xs text-gray-400">${r.reviewNote || '—'}</td>
+                </tr>`).join('');
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-red-400 py-8">Failed to load</td></tr>';
+        }
+    }
+
+    document.getElementById('classRequestForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const og = btn.innerHTML; btn.innerHTML = '<span class="loader"></span>'; btn.disabled = true;
+        try {
+            await apiFetch('/api/class-requests', {
+                method: 'POST',
+                body: JSON.stringify({
+                    sessionId: document.getElementById('crSession').value,
+                    dayOfWeek: document.getElementById('crDay').value,
+                    subject:   document.getElementById('crSubject').value.trim(),
+                    startTime: document.getElementById('crStart').value,
+                    endTime:   document.getElementById('crEnd').value,
+                    reason:    document.getElementById('crReason').value.trim(),
+                }),
+            });
+            showToast('Request submitted! Admin will review it.', 'success');
+            e.target.reset();
+            loadMyClassRequests();
+        } catch(err) {
+            showToast(err.message || 'Failed to submit', 'error');
+        } finally { btn.innerHTML = og; btn.disabled = false; }
+    });
     </script>
 </body>
 </html>

@@ -227,6 +227,7 @@ app.use('/api/leaves',      require('./routes/leaveRoutes'));
 app.use('/api/discipline',  require('./routes/disciplineRoutes'));
 app.use('/api/otp',         require('./routes/otpRoutes'));
 app.use('/api/admin',       require('./routes/adminRoutes'));
+app.use('/api/class-requests', require('./routes/classRequestRoutes'));
 
 // ── 15. SPA fallback ──────────────────────────────────────────────────────────
 app.get('*', (req, res, next) => {
