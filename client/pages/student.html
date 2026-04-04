@@ -212,35 +212,24 @@
 
             <!-- Timetable -->
             <section id="sec-timetable" class="section">
-                <h2 class="text-2xl font-bold text-white mb-4">My Timetable</h2>
-                <div class="glass-card p-5 mb-4">
-                    <label class="text-xs text-gray-400 block mb-1">Select Your Session</label>
-                    <select id="ttSessionSelect"
-                        class="input-glow w-full md:w-80 bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"
-                        onchange="loadTimetable()">
-                        <option value="">-- Select Session --</option>
-                    </select>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white">My Timetable</h2>
+                    <button onclick="loadTimetable()" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">↻ Refresh</button>
                 </div>
-
-                <!-- Weekly Grid -->
+                <!-- Weekly Grid — auto-loads student's session -->
                 <div id="timetableGrid" class="space-y-3">
-                    <p class="text-gray-500 text-center py-8">Select a session to view the timetable</p>
+                    <p class="text-gray-500 text-center py-8 animate-pulse">Loading timetable...</p>
                 </div>
             </section>
 
             <!-- Assignments -->
             <section id="sec-assignments" class="section">
-                <h2 class="text-2xl font-bold text-white mb-4">Assignments</h2>
-                <div class="glass-card p-5 mb-4">
-                    <label class="text-xs text-gray-400 block mb-1">Select Session to Load Assignments</label>
-                    <select id="assignSessionSelect"
-                        class="input-glow w-full md:w-80 bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"
-                        onchange="loadAssignments()">
-                        <option value="">-- Select Session --</option>
-                    </select>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white">Assignments</h2>
+                    <button onclick="loadAssignments()" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">↻ Refresh</button>
                 </div>
                 <div id="assignmentsList" class="space-y-4">
-                    <p class="text-gray-500 text-center py-8">Select a session to view assignments</p>
+                    <p class="text-gray-500 text-center py-8 animate-pulse">Loading assignments...</p>
                 </div>
             </section>
 
@@ -546,6 +535,15 @@
         document.getElementById('headerDate').textContent = getFormattedDate();
         hidePageLoader();
 
+        // Set today as default and minimum for leave dates
+        const _today = new Date().toISOString().split('T')[0];
+        const _leaveFrom = document.getElementById('leaveFrom');
+        const _leaveTo = document.getElementById('leaveTo');
+        if (_leaveFrom) { _leaveFrom.min = _today; _leaveFrom.value = _today; }
+        if (_leaveTo)   { _leaveTo.min = _today;   _leaveTo.value = _today; }
+        // Update leaveTo min when leaveFrom changes
+        _leaveFrom?.addEventListener('change', () => { if (_leaveTo) _leaveTo.min = _leaveFrom.value; });
+
         const studentId = user?._id;
         const token = localStorage.getItem('token');
         const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -578,8 +576,8 @@
             if (name === 'marks') loadMyMarks();
             if (name === 'fees') loadMyFees();
             if (name === 'notices') loadNotices();
-            if (name === 'timetable') loadSessionsIntoSelect('ttSessionSelect');
-            if (name === 'assignments') loadSessionsIntoSelect('assignSessionSelect');
+            if (name === 'timetable') loadTimetable();
+            if (name === 'assignments') loadAssignments();
             if (name === 'leaves') loadLeaves();
             if (name === 'profile') loadProfile();
             if (name === 'discipline') loadMyDiscipline();
@@ -660,31 +658,32 @@
         }
 
         // ── Timetable ───────────────────────────────────────────────────────────
-        async function loadSessionsIntoSelect(selId) {
+        // Auto-loads the student's enrolled session — no dropdown needed
+        let _mySessionId = null;
+
+        async function getMySession() {
+            if (_mySessionId) return _mySessionId;
             try {
                 const res = await apiFetch('/api/sessions');
                 const data = await res.json();
-                const sel = document.getElementById(selId);
-                const currentVal = sel.value;
-                if (!data.success || !data.data?.length) { sel.innerHTML = '<option value="">No sessions found</option>'; return; }
-                // Show only sessions this student belongs to
-                const mySessions = data.data.filter(s =>
-                    s.students && s.students.some(id => {
-                        const sid = id?._id || id;
-                        return String(sid) === String(studentId);
-                    })
-                );
-                const list = mySessions.length > 0 ? mySessions : data.data;
-                sel.innerHTML = '<option value="">-- Select Session --</option>' + list.map(s => `<option value="${s._id}" ${s._id === currentVal ? 'selected' : ''}>${s.name} (${s.sessionCode})</option>`).join('');
-            } catch (e) { }
+                const sessions = data.data || [];
+                if (sessions.length > 0) {
+                    _mySessionId = sessions[0]._id; // student is scoped to their own sessions
+                }
+            } catch(e) {}
+            return _mySessionId;
         }
 
         async function loadTimetable() {
-            const sessionId = document.getElementById('ttSessionSelect').value;
             const container = document.getElementById('timetableGrid');
-            if (!sessionId) { container.innerHTML = '<p class="text-gray-500 text-center py-8">Select a session to view the timetable</p>'; return; }
-
             container.innerHTML = '<p class="text-gray-500 text-center py-8 animate-pulse">Loading...</p>';
+
+            const sessionId = await getMySession();
+            if (!sessionId) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">You are not enrolled in any session yet. Contact your admin.</p>';
+                return;
+            }
+
             const res = await apiFetch(`/api/timetable/${sessionId}`);
             const data = await res.json();
 
@@ -717,11 +716,15 @@
 
         // ── Assignments ─────────────────────────────────────────────────────────
         async function loadAssignments() {
-            const sessionId = document.getElementById('assignSessionSelect').value;
             const container = document.getElementById('assignmentsList');
-            if (!sessionId) { container.innerHTML = '<p class="text-gray-500 text-center py-8">Select a session to view assignments</p>'; return; }
-
             container.innerHTML = '<p class="text-gray-500 text-center py-8 animate-pulse">Loading...</p>';
+
+            const sessionId = await getMySession();
+            if (!sessionId) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">You are not enrolled in any session yet.</p>';
+                return;
+            }
+
             const res = await apiFetch(`/api/assignments/session/${sessionId}`);
             const data = await res.json();
 
@@ -931,73 +934,6 @@
                 showToast('Report Card downloaded!', 'success');
             } catch (err) { showToast('Failed to generate report', 'error'); }
             finally { btn.innerHTML = og; btn.disabled = false; }
-        }
-
-        // ── Timetable ────────────────────────────────────────────────────────────
-        async function loadSessionsIntoSelect(selectId) {
-            // Get all sessions, filter to ones containing this student
-            try {
-                const res = await apiFetch('/api/sessions');
-                const data = await res.json();
-                const sel = document.getElementById(selectId);
-                if (!sel) return;
-                if (!data.success || !data.data?.length) {
-                    sel.innerHTML = '<option value="">No sessions available</option>';
-                    return;
-                }
-                // Filter only sessions that include this student
-                const mySessions = data.data.filter(s =>
-                    s.students && s.students.some(id => id === studentId || id?._id === studentId || id?.toString() === studentId)
-                );
-                // If no enrolled sessions found, show all (fallback)
-                const list = mySessions.length > 0 ? mySessions : data.data;
-                sel.innerHTML = '<option value="">-- Select Session --</option>' +
-                    list.map(s => `<option value="${s._id}">${s.name} (${s.sessionCode})</option>`).join('');
-            } catch (e) { console.error(e); }
-        }
-
-        async function loadTimetable() {
-            const sessionId = document.getElementById('ttSessionSelect').value;
-            const grid = document.getElementById('timetableGrid');
-            if (!sessionId) {
-                grid.innerHTML = '<p class="text-gray-500 text-center py-8">Select a session to view the timetable</p>';
-                return;
-            }
-            grid.innerHTML = '<p class="text-gray-500 text-center py-6">Loading...</p>';
-            try {
-                const res = await apiFetch(`/api/timetable/${sessionId}`);
-                const data = await res.json();
-                if (!data.success || !data.data?.length) {
-                    grid.innerHTML = '<p class="text-gray-500 text-center py-8">No timetable entries for this session yet.</p>';
-                    return;
-                }
-                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                const grouped = {};
-                days.forEach(d => grouped[d] = []);
-                data.data.forEach(e => { if (grouped[e.dayOfWeek]) grouped[e.dayOfWeek].push(e); });
-
-                grid.innerHTML = days.filter(d => grouped[d].length > 0).map(day => `
-                    <div class="glass-card overflow-hidden">
-                        <div class="px-5 py-3 border-b border-white/5 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                            <h4 class="font-semibold text-white text-sm">${day}</h4>
-                        </div>
-                        <div class="divide-y divide-white/5">
-                            ${grouped[day].map(e => `
-                            <div class="px-5 py-3 flex items-center justify-between gap-4">
-                                <div>
-                                    <p class="font-medium text-white text-sm">${e.subject}</p>
-                                    ${e.teacher ? `<p class="text-xs text-gray-400 mt-0.5">👤 ${e.teacher}</p>` : ''}
-                                </div>
-                                <span class="font-mono text-xs text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20 shrink-0">
-                                    ${e.startTime} – ${e.endTime}
-                                </span>
-                            </div>`).join('')}
-                        </div>
-                    </div>`).join('') || '<p class="text-gray-500 text-center py-8">No entries this week.</p>';
-            } catch (e) {
-                grid.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load timetable.</p>';
-            }
         }
 
         // ── Dashboard Loader ────────────────────────────────────────────────────
