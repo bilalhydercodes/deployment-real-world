@@ -1,4 +1,5 @@
 const Notice = require('../models/Notice');
+const cache = require('../utils/cache');
 
 const createNotice = async (req, res, next) => {
     try {
@@ -7,16 +8,24 @@ const createNotice = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Title and body are required' });
         const notice = await Notice.create({ schoolId: req.user.schoolId, title, body, audience, postedBy: req.user._id });
         await notice.populate('postedBy', 'name role');
+        // Bust cache for this school
+        cache.del(`notices:${req.user.schoolId}`);
         res.status(201).json({ success: true, data: notice });
     } catch (err) { next(err); }
 };
 
 const getNotices = async (req, res, next) => {
     try {
+        const cacheKey = `notices:${req.user.schoolId}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return res.json({ success: true, data: cached, fromCache: true });
+
         const notices = await Notice.find({ schoolId: req.user.schoolId })
             .populate('postedBy', 'name role')
             .sort('-createdAt')
             .limit(50);
+
+        cache.set(cacheKey, notices, 120); // cache 2 minutes
         res.json({ success: true, data: notices });
     } catch (err) { next(err); }
 };
@@ -28,6 +37,7 @@ const deleteNotice = async (req, res, next) => {
         if (req.user.role !== 'admin' && String(notice.postedBy) !== String(req.user._id))
             return res.status(403).json({ success: false, message: 'Not authorized' });
         await notice.deleteOne();
+        cache.del(`notices:${req.user.schoolId}`);
         res.json({ success: true, message: 'Notice deleted' });
     } catch (err) { next(err); }
 };
