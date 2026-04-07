@@ -94,8 +94,14 @@ router.post('/bulk-create-student', protect, authorize('admin'), async (req, res
             return res.status(400).json({ success: false, message: 'Please provide an array of students' });
 
         const createdStudents = [];
+        const skippedStudents = [];
         for (const stu of students) {
             if (!stu.name || !stu.password) continue;
+            // Bug 1.22: validate password strength before creating student
+            if (!isValidPassword(stu.password)) {
+                skippedStudents.push({ name: stu.name, reason: 'Invalid password: ' + passwordRules });
+                continue;
+            }
             const inviteCode = await generateUniqueCode('STU', 'User', 'inviteCode');
             const newStudent = await User.create({
                 name: stu.name, email: stu.email || undefined, password: stu.password,
@@ -113,7 +119,7 @@ router.post('/bulk-create-student', protect, authorize('admin'), async (req, res
             }
         }
 
-        res.status(201).json({ success: true, count: createdStudents.length, data: createdStudents.map(s => ({ name: s.name, email: s.email, inviteCode: s.inviteCode })) });
+        res.status(201).json({ success: true, count: createdStudents.length, skipped: skippedStudents.length, skippedDetails: skippedStudents, data: createdStudents.map(s => ({ name: s.name, email: s.email, inviteCode: s.inviteCode })) });
     } catch (error) { next(error); }
 });
 

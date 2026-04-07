@@ -98,14 +98,19 @@ document.getElementById('staffNextBtn').addEventListener('click', async () => {
     data = await res.json();
 
     if (data.success) {
-      staffUserData     = data.data;
-      staffContactEmail = contact;
+      staffUserData = data.data;
+      // Bug 1.3/1.4: use teacher's registered email if available so OTP is sent to email,
+      // not to the invite code string. Normalize to lowercase to match OTP model storage.
+      const rawContact = (staffLoginMode === 'teacher' && data.data.email)
+        ? data.data.email
+        : contact;
+      staffContactEmail = rawContact.trim().toLowerCase();
 
       // Send OTP to email (admin) or log to console (teacher with no email)
       const otpRes = await fetch(API_BASE_URL + '/api/otp/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact }),
+        body: JSON.stringify({ contact: staffContactEmail }),
       });
       const otpData = await otpRes.json();
 
@@ -113,7 +118,7 @@ document.getElementById('staffNextBtn').addEventListener('click', async () => {
         staffOtpSent = true;
         document.getElementById('staffStep1').classList.add('hidden');
         document.getElementById('staffStep2').classList.remove('hidden');
-        document.getElementById('staffOtpHint').textContent = contact;
+        document.getElementById('staffOtpHint').textContent = staffContactEmail;
         showToast('OTP sent! Check your email or server console.', 'success');
         document.getElementById('staffOtpCode').focus();
         loginOverlay.style.display = 'none';
@@ -123,6 +128,7 @@ document.getElementById('staffNextBtn').addEventListener('click', async () => {
     } else {
       loginOverlay.style.display = 'none';
       shakeCard();
+      // Bug 1.29: show the actual server message so students are guided to the correct portal
       showToast(data.message || 'Invalid credentials', 'error');
     }
   } catch (err) {
@@ -196,9 +202,13 @@ document.getElementById('staffLoginForm').addEventListener('submit', async (e) =
 
       setTimeout(() => {
         const role = String(staffUserData.role || '').toLowerCase().trim();
-        if (role === 'admin')   window.location.href = 'admin.html';
+        if (role === 'admin') window.location.href = 'admin.html';
         else if (role === 'teacher') window.location.href = 'teacher.html';
-        else window.location.href = 'student.html';
+        else {
+          // Bug 1.27: unexpected role — show error instead of silently redirecting to student.html
+          showToast('Unexpected account role. Please contact admin.', 'error');
+          loginOverlay.style.display = 'none';
+        }
       }, 800);
     } else {
       loginOverlay.style.display = 'none';

@@ -229,7 +229,7 @@ async function toggleLock(id, lock, name) {
         await apiFetch('/api/auth/admin/lock-student', { method: 'PATCH', body: JSON.stringify({ studentId: id, lock }) });
         showToast('Student ' + action + 'ed successfully', 'success');
         loadStudents(_studPage);
-      } catch(e) {}
+      } catch(e) { /* apiFetch already showed toast */ }
     },
     lock ? 'Lock Student' : 'Unlock Student'
   );
@@ -287,20 +287,45 @@ function deleteTeacher(id, name) {
       await apiFetch('/api/teacher/' + id, { method: 'DELETE' });
       showToast('Teacher deleted', 'success');
       loadTeachers();
-    } catch(e) {}
+    } catch(e) { /* apiFetch already showed toast */ }
   });
 }
 
 function genPassword() {
-  const c = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
-  const pwd = Array.from({length:10}, () => c[Math.floor(Math.random()*c.length)]).join('');
+  const upper   = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+  const lower   = 'abcdefghjkmnpqrstuvwxyz';
+  const digits  = '23456789';
+  const special = '@#!';
+  // Bug 1.26: guarantee at least one of each required character class
+  const base = Array.from({length:6}, () => (upper+lower+digits+special)[Math.floor(Math.random()*(upper+lower+digits+special).length)]);
+  const required = [
+    upper[Math.floor(Math.random()*upper.length)],
+    digits[Math.floor(Math.random()*digits.length)],
+    special[Math.floor(Math.random()*special.length)],
+    lower[Math.floor(Math.random()*lower.length)],
+  ];
+  // Shuffle all 10 chars together
+  const all = base.concat(required).sort(() => Math.random() - 0.5);
+  const pwd = all.join('');
   const el = document.getElementById('newStudentPwd');
   if (el) { el.value = pwd; el.style.borderColor = '#f97316'; setTimeout(() => el.style.borderColor = '', 1500); }
 }
 
 function genTeacherPassword() {
-  const c = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
-  const pwd = Array.from({length:10}, () => c[Math.floor(Math.random()*c.length)]).join('');
+  const upper   = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+  const lower   = 'abcdefghjkmnpqrstuvwxyz';
+  const digits  = '23456789';
+  const special = '@#!';
+  // Bug 1.26: guarantee at least one of each required character class
+  const base = Array.from({length:6}, () => (upper+lower+digits+special)[Math.floor(Math.random()*(upper+lower+digits+special).length)]);
+  const required = [
+    upper[Math.floor(Math.random()*upper.length)],
+    digits[Math.floor(Math.random()*digits.length)],
+    special[Math.floor(Math.random()*special.length)],
+    lower[Math.floor(Math.random()*lower.length)],
+  ];
+  const all = base.concat(required).sort(() => Math.random() - 0.5);
+  const pwd = all.join('');
   const el = document.getElementById('newTeacherPwd');
   if (el) { el.value = pwd; el.style.borderColor = '#6366f1'; setTimeout(() => el.style.borderColor = '', 1500); }
 }
@@ -561,7 +586,7 @@ async function markPaid(feeId) {
   try {
     await apiFetch('/api/fees/pay', { method: 'POST', body: JSON.stringify({ feeId }) });
     showToast('Fee marked as paid!', 'success'); loadFeesAdmin(); loadDashboard();
-  } catch(e) {}
+  } catch(e) { /* apiFetch already showed toast; no UI state to restore */ }
 }
 
 document.getElementById('addFeeForm')?.addEventListener('submit', async e => {
@@ -577,7 +602,7 @@ document.getElementById('addFeeForm')?.addEventListener('submit', async e => {
   try {
     await apiFetch('/api/fees/add', { method: 'POST', body: JSON.stringify(payload) });
     showToast('Fee record added!', 'success'); e.target.reset(); loadFeesAdmin();
-  } catch(e) {}
+  } catch(e) { /* apiFetch already showed toast */ }
 });
 
 /* ── Discipline ─────────────────────────────────────────────────── */
@@ -622,6 +647,9 @@ function openDisciplineAction(id, name) {
 
 async function submitDisciplineAction() {
   if (!_currentDiscId) return;
+  const btn = document.getElementById('discActionSubmitBtn');
+  const og = btn ? btn.innerHTML : null;
+  if (btn) { btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true; }
   try {
     await apiFetch('/api/discipline/' + _currentDiscId + '/action', { method: 'PATCH', body: JSON.stringify({
       action: document.getElementById('discActionType').value,
@@ -630,7 +658,10 @@ async function submitDisciplineAction() {
     showToast('Action recorded!', 'success');
     document.getElementById('disciplineActionModal').classList.add('hidden');
     _currentDiscId = null; loadAdminDiscipline();
-  } catch(e) {}
+  } catch(e) {
+    // Bug 1.28: restore button state so user can retry
+    if (btn) { btn.innerHTML = og; btn.disabled = false; }
+  }
 }
 
 /* ── Notices ────────────────────────────────────────────────────── */

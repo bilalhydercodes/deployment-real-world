@@ -21,6 +21,11 @@ const addMarks = async (req, res, next) => {
         if (!isValidMarks(marks, maxMarks))
             return res.status(400).json({ success: false, message: `Marks must be between 0 and ${maxMarks}` });
 
+        // Bug 1.19: validate examType enum before attempting to save
+        const validExamTypes = ['midterm', 'final', 'assignment', 'quiz'];
+        if (examType && !validExamTypes.includes(examType))
+            return res.status(400).json({ success: false, message: `examType must be one of: ${validExamTypes.join(', ')}` });
+
         const student = await User.findOne({ _id: studentId, role: 'student', schoolId });
         if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
 
@@ -44,6 +49,16 @@ const getMarks = async (req, res, next) => {
         const { studentId } = req.params;
         if (req.user.role === 'student' && req.user._id.toString() !== studentId)
             return res.status(403).json({ success: false, message: 'Access denied' });
+
+        // Bug 1.9: teachers can only view marks for students in their sessions
+        if (req.user.role === 'teacher') {
+            const orConditions = [{ teachers: req.user._id }];
+            if (req.user.classTeacherOf) orConditions.push({ _id: req.user.classTeacherOf });
+            const sessions = await Session.find({ $or: orConditions, schoolId: req.user.schoolId }).select('students');
+            const allowed = new Set(sessions.flatMap(s => s.students.map(id => id.toString())));
+            if (!allowed.has(studentId))
+                return res.status(403).json({ success: false, message: 'Student is not in your sessions' });
+        }
 
         const { page, limit, skip } = getPagination(req.query);
         const filter = { studentId, schoolId: req.user.schoolId };

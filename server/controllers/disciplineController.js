@@ -1,6 +1,7 @@
 // Discipline Controller
 const Discipline = require('../models/Discipline');
 const User = require('../models/User');
+const Session = require('../models/Session');
 
 const getPagination = (query) => {
     const page  = Math.max(1, parseInt(query.page)  || 1);
@@ -47,6 +48,16 @@ const getStudentDiscipline = async (req, res, next) => {
         const { studentId } = req.params;
         if (req.user.role === 'student' && req.user._id.toString() !== studentId)
             return res.status(403).json({ success: false, message: 'Access denied' });
+
+        // Bug 1.11: teachers can only view discipline records for students in their sessions
+        if (req.user.role === 'teacher') {
+            const orConditions = [{ teachers: req.user._id }];
+            if (req.user.classTeacherOf) orConditions.push({ _id: req.user.classTeacherOf });
+            const sessions = await Session.find({ $or: orConditions, schoolId: req.user.schoolId }).select('students');
+            const allowed = new Set(sessions.flatMap(s => s.students.map(id => id.toString())));
+            if (!allowed.has(studentId))
+                return res.status(403).json({ success: false, message: 'Student is not in your sessions' });
+        }
 
         const { page, limit, skip } = getPagination(req.query);
         const filter = { student: studentId, schoolId: req.user.schoolId };

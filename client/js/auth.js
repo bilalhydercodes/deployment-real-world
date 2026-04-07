@@ -85,6 +85,12 @@ async function apiFetch(url, options = {}) {
     if (res.status === 401) {
         showToast('Session expired. Please log in again.', 'error');
         setTimeout(() => logout(), 1500);
+        throw new Error('Session expired');
+    }
+    // Bug 1.30: throw on non-OK responses so callers can handle errors consistently
+    // (matches behavior of admin.js apiFetch)
+    if (!res.ok) {
+        throw new Error(data.message || 'Request failed');
     }
     return data;
 }

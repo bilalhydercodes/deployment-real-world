@@ -58,11 +58,13 @@ exports.claimSession = async (req, res, next) => {
         sessionCode = sessionCode.trim().toUpperCase();
         const session = await Session.findOne({ sessionCode, schoolId: req.user.schoolId });
         if (!session) return res.status(404).json({ success: false, message: 'Invalid session code.' });
-        if (!session.teachers.includes(req.user._id)) {
+        if (!session.teachers.some(t => t.toString() === req.user._id.toString())) {
             session.teachers.push(req.user._id);
             await session.save();
             cache.del(`sessions:${req.user.schoolId}`);
+            return res.status(200).json({ success: true, message: 'Session claimed successfully!', data: session });
         }
-        res.status(200).json({ success: true, message: 'Session claimed successfully!', data: session });
+        // Bug 1.25: teacher already in session — return alreadyMember indicator
+        return res.status(200).json({ success: true, alreadyMember: true, message: 'You are already a member of this session.', data: session });
     } catch (error) { next(error); }
 };

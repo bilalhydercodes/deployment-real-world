@@ -1,6 +1,7 @@
 // Fees Controller
 const Fees = require('../models/Fees');
 const User = require('../models/User');
+const Session = require('../models/Session');
 
 const getPagination = (query) => {
     const page  = Math.max(1, parseInt(query.page)  || 1);
@@ -14,6 +15,11 @@ const addFee = async (req, res, next) => {
         const schoolId = req.user.schoolId;
         if (!studentId || !amount || !dueDate)
             return res.status(400).json({ success: false, message: 'studentId, amount, and dueDate are required' });
+
+        // Bug 1.17: validate feeType enum before attempting to save
+        const validFeeTypes = ['tuition', 'hostel', 'library', 'examination', 'other'];
+        if (feeType && !validFeeTypes.includes(feeType))
+            return res.status(400).json({ success: false, message: `feeType must be one of: ${validFeeTypes.join(', ')}` });
 
         const student = await User.findOne({ _id: studentId, role: 'student', schoolId });
         if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
@@ -47,6 +53,16 @@ const getFees = async (req, res, next) => {
         if (req.user.role === 'student' && req.user._id.toString() !== studentId)
             return res.status(403).json({ success: false, message: 'Access denied' });
 
+        // Bug 1.10: teachers can only view fees for students in their sessions
+        if (req.user.role === 'teacher') {
+            const orConditions = [{ teachers: req.user._id }];
+            if (req.user.classTeacherOf) orConditions.push({ _id: req.user.classTeacherOf });
+            const sessions = await Session.find({ $or: orConditions, schoolId }).select('students');
+            const allowed = new Set(sessions.flatMap(s => s.students.map(id => id.toString())));
+            if (!allowed.has(studentId))
+                return res.status(403).json({ success: false, message: 'Student is not in your sessions' });
+        }
+
         await Fees.updateMany({ studentId, schoolId, status: 'pending', dueDate: { $lt: new Date() } }, { $set: { status: 'overdue' } });
 
         const { page, limit, skip } = getPagination(req.query);
@@ -60,9 +76,11 @@ const getFees = async (req, res, next) => {
         const allFees = await Fees.find(filter).select('amount status');
         const totalAmt   = allFees.reduce((s, f) => s + f.amount, 0);
         const paidAmt    = allFees.filter(f => f.status === 'paid').reduce((s, f) => s + f.amount, 0);
-        const pendingAmt = allFees.filter(f => f.status !== 'paid').reduce((s, f) => s + f.amount, 0);
+        // Bug 1.20: split into separate pending and overdue amounts instead of combining them
+        const pendingAmt = allFees.filter(f => f.status === 'pending').reduce((s, f) => s + f.amount, 0);
+        const overdueAmt = allFees.filter(f => f.status === 'overdue').reduce((s, f) => s + f.amount, 0);
 
-        res.json({ success: true, data: fees, summary: { total: totalAmt, paid: paidAmt, pending: pendingAmt }, pagination: { page, limit, totalPages: Math.ceil(total / limit), totalRecords: total } });
+        res.json({ success: true, data: fees, summary: { total: totalAmt, paid: paidAmt, pending: pendingAmt, overdue: overdueAmt }, pagination: { page, limit, totalPages: Math.ceil(total / limit), totalRecords: total } });
     } catch (error) { next(error); }
 };
 

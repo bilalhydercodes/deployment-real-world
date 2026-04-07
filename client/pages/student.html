@@ -559,10 +559,18 @@
         const token = localStorage.getItem('token');
         const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-        // Wrapper so all fetch calls use the correct backend URL
-        function apiFetch(path, opts = {}) {
+        // Wrapper so all fetch calls use the correct backend URL and handle errors consistently
+        async function apiFetch(path, opts = {}) {
             const url = path.startsWith('http') ? path : API_BASE_URL + path;
-            return fetch(url, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+            const res = await fetch(url, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+            const data = await res.json();
+            if (res.status === 401) {
+                showToast('Session expired. Please log in again.', 'error');
+                setTimeout(() => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = 'login.html'; }, 1500);
+                throw new Error('Session expired');
+            }
+            if (!res.ok) throw new Error(data.message || 'Request failed');
+            return data;
         }
 
         let pendingSubmitAssignmentId = null;
@@ -596,8 +604,7 @@
 
         // ── Attendance ──────────────────────────────────────────────────────────
         async function loadMyAttendance() {
-            const res = await apiFetch(`/api/attendance/${studentId}`);
-            const data = await res.json();
+            const data = await apiFetch(`/api/attendance/${studentId}`);
             cachedAtt = data.data || [];
             const tbody = document.getElementById('myAttTable');
             if (!cachedAtt.length) { tbody.innerHTML = '<tr><td colspan="3" class="text-center text-gray-500 py-8">No attendance records yet</td></tr>'; return; }
@@ -615,8 +622,7 @@
 
         // ── Marks ───────────────────────────────────────────────────────────────
         async function loadMyMarks() {
-            const res = await apiFetch(`/api/marks/${studentId}`);
-            const data = await res.json();
+            const data = await apiFetch(`/api/marks/${studentId}`);
             cachedMrk = data.data || [];
             const tbody = document.getElementById('myMrkTable');
             if (!cachedMrk.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-500 py-8">No marks records yet</td></tr>'; return; }
@@ -631,15 +637,14 @@
 
         // ── Fees ────────────────────────────────────────────────────────────────
         async function loadMyFees() {
-            const res = await apiFetch(`/api/fees/${studentId}`);
-            const data = await res.json();
+            const data = await apiFetch(`/api/fees/${studentId}`);
             const tbody = document.getElementById('myFeeTable');
             if (!data.success || !data.data?.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-500 py-8">No fee records yet</td></tr>'; return; }
             const s = data.summary;
             if (s) {
                 document.getElementById('feeTotal').textContent = `₹${s.total.toLocaleString()}`;
                 document.getElementById('feePaid').textContent = `₹${s.paid.toLocaleString()}`;
-                document.getElementById('feePending').textContent = `₹${s.pending.toLocaleString()}`;
+                document.getElementById('feePending').textContent = `₹${(s.pending + (s.overdue || 0)).toLocaleString()}`;
                 document.getElementById('feesSummaryBar').classList.remove('hidden');
             }
             tbody.innerHTML = data.data.map(f => `<tr><td class="capitalize">${f.feeType}</td><td>₹${f.amount.toLocaleString()}</td><td><span class="badge badge-${f.status}">${f.status}</span></td><td>${new Date(f.dueDate).toLocaleDateString()}</td><td>${f.paymentDate ? new Date(f.paymentDate).toLocaleDateString() : '—'}</td></tr>`).join('');
@@ -647,8 +652,7 @@
 
         // ── Notice Board ────────────────────────────────────────────────────────
         async function loadNotices() {
-            const res = await apiFetch('/api/notices');
-            const data = await res.json();
+            const data = await apiFetch('/api/notices');
             const container = document.getElementById('noticesList');
             if (!data.success || !data.data?.length) { container.innerHTML = '<p class="text-gray-500 text-center py-12">No notices yet.</p>'; return; }
             container.innerHTML = data.data.map(n => `
@@ -675,11 +679,10 @@
         async function getMySession() {
             if (_mySessionId) return _mySessionId;
             try {
-                const res = await apiFetch('/api/sessions');
-                const data = await res.json();
+                const data = await apiFetch('/api/sessions');
                 const sessions = data.data || [];
                 if (sessions.length > 0) {
-                    _mySessionId = sessions[0]._id; // student is scoped to their own sessions
+                    _mySessionId = sessions[0]._id;
                 }
             } catch(e) {}
             return _mySessionId;
@@ -695,8 +698,7 @@
                 return;
             }
 
-            const res = await apiFetch(`/api/timetable/${sessionId}`);
-            const data = await res.json();
+            const data = await apiFetch(`/api/timetable/${sessionId}`);
 
             if (!data.success || !data.data?.length) { container.innerHTML = '<p class="text-gray-500 text-center py-8">No timetable entries yet for this session.</p>'; return; }
 
@@ -736,8 +738,7 @@
                 return;
             }
 
-            const res = await apiFetch(`/api/assignments/session/${sessionId}`);
-            const data = await res.json();
+            const data = await apiFetch(`/api/assignments/session/${sessionId}`);
 
             if (!data.success || !data.data?.length) { container.innerHTML = '<p class="text-gray-500 text-center py-8">No assignments posted for this session yet.</p>'; return; }
 
@@ -783,10 +784,9 @@
             if (!pendingSubmitAssignmentId) return;
             const note = document.getElementById('submitNote').value;
             try {
-                const res = await apiFetch(`/api/assignments/${pendingSubmitAssignmentId}/submit`, {
+                const data = await apiFetch(`/api/assignments/${pendingSubmitAssignmentId}/submit`, {
                     method: 'POST', body: JSON.stringify({ note })
                 });
-                const data = await res.json();
                 if (data.success) {
                     showToast('Assignment submitted successfully! ✓', 'success');
                     document.getElementById('submitModal').classList.add('hidden');
@@ -794,13 +794,12 @@
                 } else {
                     showToast(data.message || 'Submission failed', 'error');
                 }
-            } catch (e) { showToast('Server error', 'error'); }
+            } catch (e) { showToast(e.message || 'Server error', 'error'); }
         }
 
         // ── Leave Requests ──────────────────────────────────────────────────────
         async function loadLeaves() {
-            const res = await apiFetch('/api/leaves/my');
-            const data = await res.json();
+            const data = await apiFetch('/api/leaves/my');
             const tbody = document.getElementById('leaveTable');
             if (!data.success || !data.data?.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-500 py-8">No leave requests yet</td></tr>'; return; }
             tbody.innerHTML = data.data.map(l => `
@@ -824,18 +823,16 @@
                 toDate: document.getElementById('leaveTo').value,
             };
             try {
-                const res = await apiFetch('/api/leaves/apply', { method: 'POST', body: JSON.stringify(payload) });
-                const data = await res.json();
+                const data = await apiFetch('/api/leaves/apply', { method: 'POST', body: JSON.stringify(payload) });
                 if (data.success) { showToast('Leave request submitted!', 'success'); e.target.reset(); loadLeaves(); }
                 else showToast(data.message || 'Failed to submit', 'error');
-            } catch (err) { showToast('Server error', 'error'); }
+            } catch (err) { showToast(err.message || 'Server error', 'error'); }
             finally { btn.innerHTML = og; btn.disabled = false; }
         });
 
         // ── Profile ─────────────────────────────────────────────────────────────
         async function loadProfile() {
-            const res = await apiFetch('/api/auth/me');
-            const data = await res.json();
+            const data = await apiFetch('/api/auth/me');
             if (data.success) {
                 const u = data.data;
                 document.getElementById('profileName').value = u.name || '';
@@ -856,8 +853,7 @@
             if (email) payload.email = email;
             if (pwd) payload.password = pwd;
 
-            const res = await apiFetch('/api/auth/update-profile', { method: 'PUT', body: JSON.stringify(payload) });
-            const data = await res.json();
+            const data = await apiFetch('/api/auth/update-profile', { method: 'PUT', body: JSON.stringify(payload) });
             if (data.success) {
                 showToast('Profile updated!', 'success');
                 // Update localStorage
@@ -878,11 +874,10 @@
 
             try {
                 // Fetch latest data
-                const [attRes, mrkRes] = await Promise.all([
+                const [att, mrk] = await Promise.all([
                     apiFetch(`/api/attendance/${studentId}`),
                     apiFetch(`/api/marks/${studentId}`),
                 ]);
-                const [att, mrk] = await Promise.all([attRes.json(), mrkRes.json()]);
                 const attData = att.data || [];
                 const mrkData = mrk.data || [];
                 const studentName = user?.name || 'Student';
@@ -950,13 +945,12 @@
         // ── Dashboard Loader ────────────────────────────────────────────────────
         async function loadDashboard() {
             try {
-                const [attRes, mrkRes, feeRes, noticeRes] = await Promise.all([
+                const [att, mrk, fee, notices] = await Promise.all([
                     apiFetch(`/api/attendance/${studentId}`),
                     apiFetch(`/api/marks/${studentId}`),
                     apiFetch(`/api/fees/${studentId}`),
                     apiFetch('/api/notices'),
                 ]);
-                const [att, mrk, fee, notices] = await Promise.all([attRes.json(), mrkRes.json(), feeRes.json(), noticeRes.json()]);
 
                 if (att.summary) {
                     document.getElementById('myAttPerc').textContent = att.summary.percentage;
@@ -972,7 +966,7 @@
                     document.getElementById('myMarksSummary').textContent = `${mrk.summary.totalSubjects} subject(s)`;
                 }
                 if (fee.summary) {
-                    document.getElementById('myPendingFees').textContent = `₹${fee.summary.pending.toLocaleString()}`;
+                    document.getElementById('myPendingFees').textContent = `₹${((fee.summary.pending || 0) + (fee.summary.overdue || 0)).toLocaleString()}`;
                     document.getElementById('myFeesSummary').textContent = `Paid: ₹${fee.summary.paid.toLocaleString()}`;
                 }
 
@@ -982,8 +976,7 @@
                 const sessionId = await getMySession();
                 if (sessionId) {
                     try {
-                        const ttRes = await apiFetch(`/api/timetable/${sessionId}`);
-                        const ttData = await ttRes.json();
+                        const ttData = await apiFetch(`/api/timetable/${sessionId}`);
                         const todayClasses = (ttData.data || []).filter(e => e.dayOfWeek === todayName)
                             .sort((a, b) => a.startTime.localeCompare(b.startTime));
                         if (todayClasses.length) {
@@ -1023,8 +1016,7 @@
         async function loadMyDiscipline() {
             const tbody = document.getElementById('myDisciplineTable');
             try {
-                const res = await apiFetch(`/api/discipline/student/${studentId}`);
-                const data = await res.json();
+                const data = await apiFetch(`/api/discipline/student/${studentId}`);
                 if (!data.success || !data.data.length) {
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-500 py-8">No discipline records found</td></tr>';
                     return;

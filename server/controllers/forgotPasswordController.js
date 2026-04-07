@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
 const nodemailer = require('nodemailer');
-const { isValidPassword } = require('../utils/validators');
+const { isValidPassword, passwordRules } = require('../utils/validators');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -138,6 +138,12 @@ const verifyResetOTP = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Invalid or expired OTP.' });
         }
 
+        // Defense-in-depth: check expiry explicitly (TTL index may not have fired yet)
+        if (record.expiresAt <= new Date()) {
+            await OTP.deleteOne({ _id: record._id });
+            return res.status(400).json({ success: false, message: 'Invalid or expired OTP.' });
+        }
+
         // OTP is valid — delete it (one-time use)
         await OTP.deleteOne({ _id: record._id });
 
@@ -176,7 +182,7 @@ const resetPassword = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'contact, resetToken and newPassword are required' });
         }
         if (!isValidPassword(newPassword)) {
-            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+            return res.status(400).json({ success: false, message: passwordRules });
         }
 
         const normalised = contact.trim().toLowerCase();
@@ -223,10 +229,10 @@ const adminUpdatePassword = async (req, res, next) => {
         const { newPassword } = req.body;
 
         if (!isValidPassword(newPassword)) {
-            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+            return res.status(400).json({ success: false, message: passwordRules });
         }
 
-        const target = await User.findById(userId);
+        const target = await User.findOne({ _id: userId, schoolId: req.user.schoolId });
         if (!target) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
