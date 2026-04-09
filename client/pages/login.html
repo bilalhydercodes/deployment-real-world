@@ -196,22 +196,8 @@
       <button class="btn-green" id="staffContinueBtn" onclick="doStaffStep1()">Continue</button>
     </div>
 
-    <!-- Step 2: OTP -->
-    <div id="staffStep2" class="hidden">
-      <div style="text-align:center;margin-bottom:1rem;">
-        <p style="font-size:0.85rem;color:#6b7280;">Enter OTP sent to your email</p>
-        <p id="staffOtpHint" style="font-size:0.82rem;font-weight:600;color:#ea580c;margin-top:2px;"></p>
-      </div>
-      <div class="field">
-        <label>OTP Code</label>
-        <input type="text" id="staffOtpCode" class="inp otp-input" placeholder="123456" maxlength="6" />
-      </div>
-      <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;">
-        <button class="btn-gray" onclick="goBackStaff()">Back</button>
-        <button class="btn-half" id="staffVerifyBtn" onclick="doStaffVerifyOtp()">Verify & Login</button>
-      </div>
-      <button class="btn-link" id="staffResendBtn" onclick="doStaffResendOtp()">Resend OTP</button>
-    </div>
+    <!-- Step 2: OTP (disabled — direct login after credential verification) -->
+    <div id="staffStep2" class="hidden" style="display:none!important;"></div>
   </div>
 
   <!-- Links -->
@@ -376,21 +362,14 @@
 
       data = await res.json();
       if (data.success) {
-        staffData    = data.data;
-        staffContact = contact;
-        // Send OTP
-        var otpRes  = await fetch(API_BASE_URL + '/api/otp/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact }) });
-        var otpData = await otpRes.json();
-        if (otpData.success) {
-          document.getElementById('staffStep1').classList.add('hidden');
-          document.getElementById('staffStep2').classList.remove('hidden');
-          document.getElementById('staffOtpHint').textContent = contact;
-          hideOverlay();
-          showToast('OTP sent! Check your email.', 'success');
-          document.getElementById('staffOtpCode').focus();
-        } else {
-          throw new Error(otpData.message || 'Failed to send OTP');
-        }
+        // OTP disabled — log in directly after credential verification
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data));
+        showToast('Login successful!', 'success');
+        setTimeout(function () {
+          var r = (data.data.role || '').toLowerCase();
+          window.location.href = r === 'admin' ? 'admin.html' : 'teacher.html';
+        }, 700);
       } else {
         hideOverlay(); shakeCard();
         showToast(data.message || 'Invalid credentials', 'error');
