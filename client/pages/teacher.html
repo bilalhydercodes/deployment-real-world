@@ -104,9 +104,9 @@
             </button>
             <button class="nav-link" onclick="showSection('notices')">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                 </svg>
-                Notices
+                Homework
             </button>
             <button class="nav-link" onclick="showSection('leave')">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,7 +186,7 @@
                 <div class="glass-card p-5">
                     <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
                         <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-                        Latest Notices
+                        Latest Homework
                     </h3>
                     <div id="dashNotices" class="space-y-2 text-sm text-gray-400">Loading...</div>
                 </div>
@@ -674,41 +674,53 @@
                 </div>
             </section>
 
-            <!-- Notices Board -->
+            <!-- Homework -->
             <section id="sec-notices" class="section">
-                <h2 class="text-2xl font-bold text-white mb-2">Notices Board</h2>
-                <p class="text-gray-400 text-sm mb-6">Post notices and view all school announcements</p>
+                <h2 class="text-2xl font-bold text-white mb-2">Homework</h2>
+                <p class="text-gray-400 text-sm mb-6">Assign homework to a specific session and track what's been posted</p>
 
-                <!-- Post Notice form -->
+                <!-- Post Homework form -->
                 <div class="glass-card p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-white mb-4">Post a Notice</h3>
+                    <h3 class="text-lg font-semibold text-white mb-4">Post Homework</h3>
                     <form id="teacherNoticeForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs text-gray-400 block mb-1">Title</label>
-                            <input type="text" id="noticeTitleT" required placeholder="Notice title"
+                            <label class="text-xs text-gray-400 block mb-1">Session / Class</label>
+                            <select id="hwSession" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="">Select Session</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Subject</label>
+                            <input type="text" id="noticeTitleT" required placeholder="e.g. Mathematics"
                                 class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
                         </div>
                         <div>
-                            <label class="text-xs text-gray-400 block mb-1">Audience</label>
-                            <select id="noticeAudienceT" class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
-                                <option value="all">Everyone</option>
-                                <option value="students">Students only</option>
-                                <option value="teachers">Teachers only</option>
+                            <label class="text-xs text-gray-400 block mb-1">Due Date</label>
+                            <input type="date" id="hwDueDate" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Estimated Time</label>
+                            <select id="hwTime" class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="15 mins">15 mins</option>
+                                <option value="30 mins" selected>30 mins</option>
+                                <option value="45 mins">45 mins</option>
+                                <option value="1 hour">1 hour</option>
+                                <option value="1-2 hours">1-2 hours</option>
                             </select>
                         </div>
                         <div class="sm:col-span-2">
-                            <label class="text-xs text-gray-400 block mb-1">Message</label>
-                            <textarea id="noticeBodyT" rows="3" required placeholder="Write your notice here..."
+                            <label class="text-xs text-gray-400 block mb-1">Homework Description</label>
+                            <textarea id="noticeBodyT" rows="3" required placeholder="Describe the homework task clearly..."
                                 class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm resize-none"></textarea>
                         </div>
                         <div class="sm:col-span-2 flex justify-end">
-                            <button type="submit" class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">Post Notice</button>
+                            <button type="submit" class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">Post Homework</button>
                         </div>
                     </form>
                 </div>
 
                 <div id="teacherNoticesList" class="space-y-3">
-                    <p class="text-gray-500 text-center py-8">Loading notices...</p>
+                    <p class="text-gray-500 text-center py-8">Loading homework...</p>
                 </div>
             </section>
 
@@ -883,7 +895,7 @@
             attendance: 'Mark Attendance', marks: 'Enter Marks', viewAttendance: 'View Records',
             timetable: 'My Timetable', discipline: 'Discipline Reports',
             classrequest: 'Request Class',
-            assignments: 'Assignments', notices: 'Notices Board',
+            assignments: 'Assignments', notices: 'Homework',
             leave: 'Leave', studentprofile: 'Student Profile'
         };
 
@@ -1560,38 +1572,85 @@
         } catch(e) { console.error(e); }
     }
 
-    // ── NOTICES ───────────────────────────────────────────────────────────────
+    // ── HOMEWORK ──────────────────────────────────────────────────────────────
     async function loadTeacherNotices() {
         const el = document.getElementById('teacherNoticesList');
+        // Populate session dropdown
+        try {
+            const sessRes = await apiFetch('/api/sessions');
+            const sel = document.getElementById('hwSession');
+            if (sel && sel.options.length <= 1) {
+                sel.innerHTML = '<option value="">Select Session</option>';
+                (sessRes.data || []).forEach(s => { sel.innerHTML += `<option value="${s._id}">${s.name} (${s.sessionCode})</option>`; });
+            }
+            // Set default due date to tomorrow
+            const dd = document.getElementById('hwDueDate');
+            if (dd && !dd.value) { const t = new Date(); t.setDate(t.getDate()+1); dd.value = t.toISOString().split('T')[0]; }
+        } catch(e) {}
+
+        // Load homework posted as notices with audience='students'
         try {
             const res = await apiFetch('/api/notices');
-            const notices = res.data || [];
-            if (!notices.length) { el.innerHTML = '<p class="text-gray-500 text-center py-8 text-sm">No notices posted yet.</p>'; return; }
-            el.innerHTML = notices.map(n => `
-                <div class="glass-card p-5">
+            const hw = (res.data || []).filter(n => n.postedBy?._id === user._id || n.postedBy === user._id);
+            if (!hw.length) { el.innerHTML = '<p class="text-gray-500 text-center py-8 text-sm">No homework posted yet.</p>'; return; }
+            el.innerHTML = hw.map(n => {
+                // Parse session name and due date from body if stored
+                const lines = (n.body || '').split('\n');
+                const desc = lines.filter(l => !l.startsWith('Due:') && !l.startsWith('Time:')).join(' ');
+                const dueLine = lines.find(l => l.startsWith('Due:'));
+                const timeLine = lines.find(l => l.startsWith('Time:'));
+                return `<div class="glass-card p-5">
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex-1">
-                            <h4 class="font-semibold text-white text-sm mb-1">${n.title}</h4>
-                            <p class="text-gray-400 text-sm">${n.body || ''}</p>
-                            <p class="text-xs text-gray-500 mt-2">${n.postedBy?.name || '—'} · <span class="capitalize text-orange-400">${n.audience}</span></p>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-semibold text-white text-sm">📚 ${n.title}</h4>
+                                <span class="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded capitalize">${n.audience}</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-1">${desc}</p>
+                            <div class="flex gap-4 mt-2">
+                                ${dueLine ? `<span class="text-xs text-amber-400">📅 ${dueLine.replace('Due:','').trim()}</span>` : ''}
+                                ${timeLine ? `<span class="text-xs text-gray-500">⏱ ${timeLine.replace('Time:','').trim()}</span>` : ''}
+                            </div>
                         </div>
                         <span class="text-xs text-gray-500 whitespace-nowrap">${new Date(n.createdAt).toLocaleDateString()}</span>
                     </div>
-                </div>`).join('');
-        } catch(e) { el.innerHTML = '<p class="text-red-400 text-center py-8 text-sm">Failed to load notices.</p>'; }
+                </div>`;
+            }).join('');
+        } catch(e) { el.innerHTML = '<p class="text-red-400 text-center py-8 text-sm">Failed to load.</p>'; }
     }
 
     document.getElementById('teacherNoticeForm')?.addEventListener('submit', async e => {
         e.preventDefault();
+        const sessionId = document.getElementById('hwSession').value;
+        const subject   = document.getElementById('noticeTitleT').value.trim();
+        const desc      = document.getElementById('noticeBodyT').value.trim();
+        const dueDate   = document.getElementById('hwDueDate').value;
+        const estTime   = document.getElementById('hwTime').value;
+        if (!sessionId) return showToast('Select a session', 'error');
+        if (!subject)   return showToast('Enter a subject', 'error');
+        if (!desc)      return showToast('Enter homework description', 'error');
+
         const btn = e.target.querySelector('button[type=submit]');
         const og = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
+
+        // Find session name for the notice title
+        const sel = document.getElementById('hwSession');
+        const sessionName = sel.options[sel.selectedIndex]?.text || '';
+
+        // Store as a notice with structured body
+        const body = `${desc}\nDue: ${dueDate ? new Date(dueDate).toLocaleDateString() : 'Not set'}\nTime: ${estTime}`;
         try {
             await apiFetch('/api/notices', { method: 'POST', body: JSON.stringify({
-                title: document.getElementById('noticeTitleT').value.trim(),
-                body: document.getElementById('noticeBodyT').value.trim(),
-                audience: document.getElementById('noticeAudienceT').value,
+                title:    `${subject} — ${sessionName}`,
+                body,
+                audience: 'students',
             })});
-            showToast('Notice posted!', 'success'); e.target.reset(); loadTeacherNotices();
+            showToast('Homework posted!', 'success');
+            e.target.reset();
+            // Reset due date to tomorrow
+            const dd = document.getElementById('hwDueDate');
+            if (dd) { const t = new Date(); t.setDate(t.getDate()+1); dd.value = t.toISOString().split('T')[0]; }
+            loadTeacherNotices();
         } catch(e) {} finally { btn.innerHTML = og; btn.disabled = false; }
     });
 
