@@ -5,6 +5,7 @@ const { protect } = require('../middleware/authMiddleware');
 const { authorize } = require('../middleware/roleMiddleware');
 
 router.post('/apply', protect, authorize('student'), applyLeave);
+router.post('/teacher-apply', protect, authorize('teacher'), applyLeave);
 router.get('/my', protect, authorize('student'), getMyLeaves);
 router.get('/', protect, authorize('admin', 'teacher'), getAllLeaves);
 router.patch('/:id/status', protect, authorize('admin', 'teacher'), updateLeaveStatus);

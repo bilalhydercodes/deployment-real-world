@@ -685,14 +685,15 @@
                     <form id="teacherNoticeForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="text-xs text-gray-400 block mb-1">Session / Class</label>
-                            <select id="hwSession" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                            <select id="hwSession" required onchange="loadHwSubjects()" class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
                                 <option value="">Select Session</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs text-gray-400 block mb-1">Subject</label>
-                            <input type="text" id="noticeTitleT" required placeholder="e.g. Mathematics"
-                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                            <label class="text-xs text-gray-400 block mb-1">Subject <span id="hwSubjectLoading" class="text-indigo-400 hidden">Loading...</span></label>
+                            <select id="noticeTitleT" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="">Select session first</option>
+                            </select>
                         </div>
                         <div>
                             <label class="text-xs text-gray-400 block mb-1">Due Date</label>
@@ -1573,6 +1574,29 @@
     }
 
     // ── HOMEWORK ──────────────────────────────────────────────────────────────
+    async function loadHwSubjects() {
+        const sessionId = document.getElementById('hwSession').value;
+        const sel = document.getElementById('noticeTitleT');
+        const loading = document.getElementById('hwSubjectLoading');
+        sel.innerHTML = '<option value="">Loading subjects...</option>';
+        if (!sessionId) { sel.innerHTML = '<option value="">Select session first</option>'; return; }
+        if (loading) loading.classList.remove('hidden');
+        try {
+            const tt = await apiFetch(`/api/timetable/${sessionId}`);
+            const subjects = [...new Set((tt.data || []).map(e => e.subject).filter(Boolean))].sort();
+            if (subjects.length) {
+                sel.innerHTML = '<option value="">Select subject</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+            } else {
+                // No timetable yet — fall back to free text
+                sel.outerHTML = `<input type="text" id="noticeTitleT" required placeholder="e.g. Mathematics" class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />`;
+            }
+        } catch(e) {
+            sel.innerHTML = '<option value="">Failed to load</option>';
+        } finally {
+            if (loading) loading.classList.add('hidden');
+        }
+    }
+
     async function loadTeacherNotices() {
         const el = document.getElementById('teacherNoticesList');
         // Populate session dropdown
@@ -1690,8 +1714,13 @@
     async function loadTeacherLeave() {
         const tbody = document.getElementById('teacherLeaveTable');
         try {
-            const res = await apiFetch('/api/leaves/my');
-            const leaves = res.data || [];
+            // Teachers can't use /api/leaves/my (student-only route)
+            // Use /api/leaves (all leaves) and filter by teacher's own ID
+            const res = await apiFetch('/api/leaves');
+            const leaves = (res.data || []).filter(l => {
+                const sid = l.student?._id || l.student;
+                return String(sid) === String(user._id);
+            });
             if (!leaves.length) {
                 tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-6 text-sm">No applications yet.</td></tr>';
                 return;
@@ -1713,7 +1742,7 @@
         const btn = e.target.querySelector('button[type=submit]');
         btn.disabled = true; btn.textContent = 'Submitting...';
         try {
-            await apiFetch('/api/leaves/apply', {
+            await apiFetch('/api/leaves/teacher-apply', {
                 method: 'POST',
                 body: JSON.stringify({
                     fromDate: document.getElementById('leaveFrom').value,
