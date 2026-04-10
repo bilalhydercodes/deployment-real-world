@@ -47,7 +47,13 @@
             <p class="text-xs text-emerald-400 mt-0.5">📚 Teacher</p>
         </div>
 
-        <nav class="flex-1 p-4 space-y-1 mt-2">
+        <nav class="flex-1 p-4 space-y-1 mt-2 overflow-y-auto">
+            <button class="nav-link" onclick="showSection('dashboard')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                Dashboard
+            </button>
             <button class="nav-link active" onclick="showSection('attendance')">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -90,7 +96,7 @@
                 </svg>
                 Discipline Reports
             </button>
-            <button class="nav-link" onclick="showSection('assignments')" style="display:none;">
+            <button class="nav-link" onclick="showSection('assignments')">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                 </svg>
@@ -106,7 +112,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                 </svg>
-                Apply Leave
+                Leave
             </button>
             <button class="nav-link" onclick="showSection('studentprofile')">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,6 +147,50 @@
         </div>
 
         <div class="max-w-4xl mx-auto p-6 space-y-6 w-full">
+
+            <!-- Dashboard -->
+            <section id="sec-dashboard" class="section">
+                <h2 class="text-2xl font-bold text-white mb-1" id="dashGreeting">Welcome back!</h2>
+                <p class="text-gray-400 text-sm mb-6" id="dashDate"></p>
+
+                <!-- Stats row -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                    <div class="stat-card">
+                        <p class="text-gray-400 text-xs mb-1">My Students</p>
+                        <p id="dashStudents" class="text-3xl font-bold text-emerald-400">—</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-400 text-xs mb-1">My Sessions</p>
+                        <p id="dashSessions" class="text-3xl font-bold text-indigo-400">—</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-400 text-xs mb-1">Pending Leaves</p>
+                        <p id="dashPendingLeaves" class="text-3xl font-bold text-amber-400">—</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-gray-400 text-xs mb-1">Today's Classes</p>
+                        <p id="dashTodayCount" class="text-3xl font-bold text-violet-400">—</p>
+                    </div>
+                </div>
+
+                <!-- Today's timetable -->
+                <div class="glass-card p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Today's Schedule
+                    </h3>
+                    <div id="dashTodayClasses" class="space-y-2 text-sm text-gray-400">Loading...</div>
+                </div>
+
+                <!-- Latest notices -->
+                <div class="glass-card p-5">
+                    <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                        Latest Notices
+                    </h3>
+                    <div id="dashNotices" class="space-y-2 text-sm text-gray-400">Loading...</div>
+                </div>
+            </section>
 
             <!-- Mark Attendance -->
             <section id="sec-attendance" class="section active">
@@ -337,6 +387,26 @@
                         </svg>
                         PDF
                     </button>
+                </div>
+
+                <!-- Attendance + Marks summary bar -->
+                <div id="viewSummaryBar" class="hidden glass-card p-4 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">Attendance</p>
+                        <p id="viewAttPct" class="text-2xl font-bold text-emerald-400">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">Present</p>
+                        <p id="viewAttPresent" class="text-2xl font-bold text-emerald-300">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">Absent</p>
+                        <p id="viewAttAbsent" class="text-2xl font-bold text-red-400">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">Avg Score</p>
+                        <p id="viewAvgMarks" class="text-2xl font-bold text-violet-400">—</p>
+                    </div>
                 </div>
 
                 <div class="glass-card overflow-hidden mb-4">
@@ -550,19 +620,56 @@
                 </div>
             </section>
 
-            <!-- Assignments (Coming Soon) -->
+            <!-- Assignments -->
             <section id="sec-assignments" class="section">
-                <div class="flex flex-col items-center justify-center py-24 gap-6">
-                    <div class="w-24 h-24 rounded-3xl flex items-center justify-center" style="background:rgba(99,102,241,.08);border:2px dashed rgba(99,102,241,.3);">
-                        <svg class="w-12 h-12 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                <h2 class="text-2xl font-bold text-white mb-2">Assignments</h2>
+                <p class="text-gray-400 text-sm mb-6">Create assignments for your sessions and track submissions</p>
+
+                <!-- Create Assignment -->
+                <div class="glass-card p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Create Assignment</h3>
+                    <form id="createAssignmentForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Session</label>
+                            <select id="assignSessionId" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="">Select Session</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Subject</label>
+                            <input type="text" id="assignSubject" required placeholder="e.g. Mathematics"
+                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="text-xs text-gray-400 block mb-1">Title</label>
+                            <input type="text" id="assignTitle" required placeholder="Assignment title"
+                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="text-xs text-gray-400 block mb-1">Description (optional)</label>
+                            <textarea id="assignDesc" rows="2" placeholder="Instructions or details..."
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm resize-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Due Date</label>
+                            <input type="date" id="assignDueDate" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full btn-gradient text-white font-semibold py-2.5 px-6 rounded-xl text-sm">
+                                Create Assignment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- My Assignments list -->
+                <div class="glass-card overflow-hidden">
+                    <div class="p-4 border-b border-white/5 flex items-center justify-between">
+                        <h3 class="font-semibold text-white text-sm">My Assignments</h3>
+                        <button onclick="loadMyAssignments()" class="text-xs text-indigo-400 hover:text-indigo-300">↻ Refresh</button>
                     </div>
-                    <div class="text-center">
-                        <h3 class="text-2xl font-bold text-white mb-2">🚀 Coming Soon</h3>
-                        <p class="text-gray-400 text-sm max-w-sm">The Assignments feature is currently under development. We're working hard to bring it to you very soon!</p>
-                    </div>
-                    <div class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-indigo-300" style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);">
-                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        Feature in development
+                    <div id="assignmentsList" class="divide-y divide-white/5">
+                        <p class="text-gray-500 text-center py-8 text-sm">Loading...</p>
                     </div>
                 </div>
             </section>
@@ -570,42 +677,99 @@
             <!-- Notices Board -->
             <section id="sec-notices" class="section">
                 <h2 class="text-2xl font-bold text-white mb-2">Notices Board</h2>
-                <p class="text-gray-400 text-sm mb-6">Notices posted by administration</p>
+                <p class="text-gray-400 text-sm mb-6">Post notices and view all school announcements</p>
+
+                <!-- Post Notice form -->
+                <div class="glass-card p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Post a Notice</h3>
+                    <form id="teacherNoticeForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Title</label>
+                            <input type="text" id="noticeTitleT" required placeholder="Notice title"
+                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Audience</label>
+                            <select id="noticeAudienceT" class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                                <option value="all">Everyone</option>
+                                <option value="students">Students only</option>
+                                <option value="teachers">Teachers only</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="text-xs text-gray-400 block mb-1">Message</label>
+                            <textarea id="noticeBodyT" rows="3" required placeholder="Write your notice here..."
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm resize-none"></textarea>
+                        </div>
+                        <div class="sm:col-span-2 flex justify-end">
+                            <button type="submit" class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">Post Notice</button>
+                        </div>
+                    </form>
+                </div>
+
                 <div id="teacherNoticesList" class="space-y-3">
                     <p class="text-gray-500 text-center py-8">Loading notices...</p>
                 </div>
             </section>
 
-            <!-- Apply Leave -->
+            <!-- Leave -->
             <section id="sec-leave" class="section">
-                <h2 class="text-2xl font-bold text-white mb-2">Apply for Leave</h2>
-                <p class="text-gray-400 text-sm mb-6">Submit a leave application</p>
-                <div class="glass-card p-6 mb-6">
-                    <form id="teacherLeaveForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-xs text-gray-400 block mb-1">From Date</label>
-                            <input type="date" id="leaveFrom" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"/>
-                        </div>
-                        <div>
-                            <label class="text-xs text-gray-400 block mb-1">To Date</label>
-                            <input type="date" id="leaveTo" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"/>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="text-xs text-gray-400 block mb-1">Reason</label>
-                            <textarea id="leaveReason" rows="3" required placeholder="Reason for leave..." class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm resize-none"></textarea>
-                        </div>
-                        <div class="md:col-span-2 flex justify-end">
-                            <button type="submit" class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">Submit Application</button>
-                        </div>
-                    </form>
+                <h2 class="text-2xl font-bold text-white mb-2">Leave</h2>
+                <p class="text-gray-400 text-sm mb-4">Apply for your own leave or review student leave requests</p>
+
+                <!-- Tabs -->
+                <div class="flex gap-2 mb-6">
+                    <button id="leaveTabMine" onclick="switchLeaveTab('mine')"
+                        class="px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 text-white transition-colors">My Leave</button>
+                    <button id="leaveTabStudents" onclick="switchLeaveTab('students')"
+                        class="px-4 py-2 rounded-xl text-sm font-semibold bg-white/5 text-gray-400 hover:bg-white/10 transition-colors">Student Requests</button>
                 </div>
-                <div class="glass-card overflow-hidden">
-                    <div class="p-4 border-b border-white/5"><h3 class="font-semibold text-white text-sm">My Leave Applications</h3></div>
-                    <div class="overflow-x-auto">
-                        <table class="data-table">
-                            <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr></thead>
-                            <tbody id="teacherLeaveTable"><tr><td colspan="4" class="text-center text-gray-500 py-6">Loading...</td></tr></tbody>
-                        </table>
+
+                <!-- My Leave tab -->
+                <div id="leaveTabMineContent">
+                    <div class="glass-card p-6 mb-6">
+                        <form id="teacherLeaveForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-400 block mb-1">From Date</label>
+                                <input type="date" id="leaveFrom" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"/>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 block mb-1">To Date</label>
+                                <input type="date" id="leaveTo" required class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm"/>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="text-xs text-gray-400 block mb-1">Reason</label>
+                                <textarea id="leaveReason" rows="3" required placeholder="Reason for leave..." class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm resize-none"></textarea>
+                            </div>
+                            <div class="md:col-span-2 flex justify-end">
+                                <button type="submit" class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">Submit Application</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="glass-card overflow-hidden">
+                        <div class="p-4 border-b border-white/5"><h3 class="font-semibold text-white text-sm">My Leave Applications</h3></div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr></thead>
+                                <tbody id="teacherLeaveTable"><tr><td colspan="4" class="text-center text-gray-500 py-6">Loading...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Requests tab -->
+                <div id="leaveTabStudentsContent" class="hidden">
+                    <div class="glass-card overflow-hidden">
+                        <div class="p-4 border-b border-white/5 flex items-center justify-between">
+                            <h3 class="font-semibold text-white text-sm">Student Leave Requests</h3>
+                            <button onclick="loadStudentLeaveRequests()" class="text-xs text-indigo-400 hover:text-indigo-300">↻ Refresh</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead><tr><th>Student</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+                                <tbody id="studentLeaveTable"><tr><td colspan="6" class="text-center text-gray-500 py-8">Loading...</td></tr></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -692,7 +856,7 @@
         }
 
         function populateStudentDropdowns(students) {
-            const dropdownIds = ['attStudentId', 'mrkStudentId', 'viewStudentId', 'discStudentId'];
+            const dropdownIds = ['attStudentId', 'mrkStudentId', 'viewStudentId', 'discStudentId', 'profileStudentId'];
             dropdownIds.forEach(elId => {
                 const sel = document.getElementById(elId);
                 if (sel) {
@@ -715,11 +879,12 @@
         }
 
         const sectionNames = {
+            dashboard: 'Dashboard',
             attendance: 'Mark Attendance', marks: 'Enter Marks', viewAttendance: 'View Records',
             timetable: 'My Timetable', discipline: 'Discipline Reports',
             classrequest: 'Request Class',
             assignments: 'Assignments', notices: 'Notices Board',
-            leave: 'Apply for Leave', studentprofile: 'Student Profile'
+            leave: 'Leave', studentprofile: 'Student Profile'
         };
 
         function showSection(name) {
@@ -744,6 +909,8 @@
             } else if (name === 'discipline') {
                 fetchStudents();
                 loadDisciplineReports();
+            } else if (name === 'dashboard') {
+                loadTeacherDashboard();
             }
         }
 
@@ -1025,6 +1192,18 @@
 
                 currentViewRecords.att = att.data || [];
                 currentViewRecords.mrk = mrk.data || [];
+
+                // Show summary bar
+                if (att.summary) {
+                    document.getElementById('viewAttPct').textContent = att.summary.percentage;
+                    document.getElementById('viewAttPct').style.color = parseFloat(att.summary.percentage) >= 75 ? '#34d399' : '#f87171';
+                    document.getElementById('viewAttPresent').textContent = att.summary.present;
+                    document.getElementById('viewAttAbsent').textContent = att.summary.absent;
+                }
+                if (mrk.summary) {
+                    document.getElementById('viewAvgMarks').textContent = mrk.summary.avgPercentage;
+                }
+                document.getElementById('viewSummaryBar').classList.remove('hidden');
 
                 const attBody = document.getElementById('viewAttTable');
                 attBody.innerHTML = att.data?.length
@@ -1324,6 +1503,8 @@
                     
                     // Always load the timetable initially (it will use the selected value or default to "all")
                     loadTeacherTimetable();
+                    // Load dashboard stats
+                    loadTeacherDashboard();
                 }
             } catch (e) {
                 console.error("Failed to init teacher dashboard", e);
@@ -1340,14 +1521,44 @@
     window.showSection = function(name) {
         if (_tOrigShow) _tOrigShow(name);
         if (name === 'notices')        loadTeacherNotices();
-        if (name === 'leave')          loadTeacherLeave();
+        if (name === 'leave')          { loadTeacherLeave(); loadStudentLeaveRequests(); }
+        if (name === 'assignments')    { loadAssignmentSessions(); loadMyAssignments(); }
         if (name === 'studentprofile') fetchStudents().then(() => {
             const sel = document.getElementById('profileStudentId');
-            if (sel) {
-                sel.innerHTML = document.getElementById('viewStudentId').innerHTML;
-            }
+            if (sel) sel.innerHTML = document.getElementById('viewStudentId').innerHTML;
         });
     };
+
+    // ── DASHBOARD ─────────────────────────────────────────────────────────────
+    async function loadTeacherDashboard() {
+        const h = (typeof getGreeting === 'function') ? getGreeting() : 'Welcome';
+        document.getElementById('dashGreeting').textContent = `${h}, ${user.name || 'Teacher'}! 📚`;
+        document.getElementById('dashDate').textContent = (typeof getFormattedDate === 'function') ? getFormattedDate() : new Date().toLocaleDateString();
+        try {
+            const [sessRes, leaveRes, noticeRes] = await Promise.all([
+                apiFetch('/api/sessions'), apiFetch('/api/leaves'), apiFetch('/api/notices'),
+            ]);
+            const sessions = sessRes.data || [];
+            document.getElementById('dashStudents').textContent = sessions.reduce((s, sess) => s + (sess.students?.length || 0), 0);
+            document.getElementById('dashSessions').textContent = sessions.length;
+            document.getElementById('dashPendingLeaves').textContent = (leaveRes.data || []).filter(l => l.status === 'pending').length;
+            const todayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+            const todayEl = document.getElementById('dashTodayClasses');
+            let todayClasses = [];
+            await Promise.all(sessions.map(async s => {
+                try { const tt = await apiFetch(`/api/timetable/${s._id}`); (tt.data||[]).filter(e=>e.dayOfWeek===todayName).forEach(e=>todayClasses.push({...e,sessionName:s.name})); } catch(e){}
+            }));
+            todayClasses.sort((a,b)=>a.startTime.localeCompare(b.startTime));
+            document.getElementById('dashTodayCount').textContent = todayClasses.length;
+            todayEl.innerHTML = todayClasses.length
+                ? todayClasses.map(e=>`<div class="flex items-center gap-3 py-2 border-b border-white/5 last:border-0"><span class="font-mono text-xs text-amber-400 w-28 shrink-0">${e.startTime} – ${e.endTime}</span><div><p class="text-sm text-white font-medium">${e.subject}</p><p class="text-xs text-gray-500">${e.sessionName}</p></div></div>`).join('')
+                : `<p class="text-xs text-gray-600">No classes scheduled for ${todayName}.</p>`;
+            const notices = noticeRes.data || [];
+            document.getElementById('dashNotices').innerHTML = notices.length
+                ? notices.slice(0,3).map(n=>`<div class="flex items-start gap-2 py-2 border-b border-white/5 last:border-0"><span class="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0"></span><div><p class="text-sm text-white font-medium">${n.title}</p><p class="text-xs text-gray-500">${new Date(n.createdAt).toLocaleDateString()}</p></div></div>`).join('')
+                : '<p class="text-xs text-gray-600">No notices yet.</p>';
+        } catch(e) { console.error(e); }
+    }
 
     // ── NOTICES ───────────────────────────────────────────────────────────────
     async function loadTeacherNotices() {
@@ -1355,31 +1566,73 @@
         try {
             const res = await apiFetch('/api/notices');
             const notices = res.data || [];
-            if (!notices.length) {
-                el.innerHTML = '<p class="text-gray-500 text-center py-8 text-sm">No notices posted yet.</p>';
-                return;
-            }
+            if (!notices.length) { el.innerHTML = '<p class="text-gray-500 text-center py-8 text-sm">No notices posted yet.</p>'; return; }
             el.innerHTML = notices.map(n => `
                 <div class="glass-card p-5">
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex-1">
-                            <h4 class="font-semibold text-white text-sm mb-1">${n.title || 'Notice'}</h4>
-                            <p class="text-gray-400 text-sm">${n.message || n.content || ''}</p>
+                            <h4 class="font-semibold text-white text-sm mb-1">${n.title}</h4>
+                            <p class="text-gray-400 text-sm">${n.body || ''}</p>
+                            <p class="text-xs text-gray-500 mt-2">${n.postedBy?.name || '—'} · <span class="capitalize text-orange-400">${n.audience}</span></p>
                         </div>
                         <span class="text-xs text-gray-500 whitespace-nowrap">${new Date(n.createdAt).toLocaleDateString()}</span>
                     </div>
                 </div>`).join('');
-        } catch(e) {
-            el.innerHTML = '<p class="text-red-400 text-center py-8 text-sm">Failed to load notices.</p>';
-        }
+        } catch(e) { el.innerHTML = '<p class="text-red-400 text-center py-8 text-sm">Failed to load notices.</p>'; }
     }
 
+    document.getElementById('teacherNoticeForm')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type=submit]');
+        const og = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
+        try {
+            await apiFetch('/api/notices', { method: 'POST', body: JSON.stringify({
+                title: document.getElementById('noticeTitleT').value.trim(),
+                body: document.getElementById('noticeBodyT').value.trim(),
+                audience: document.getElementById('noticeAudienceT').value,
+            })});
+            showToast('Notice posted!', 'success'); e.target.reset(); loadTeacherNotices();
+        } catch(e) {} finally { btn.innerHTML = og; btn.disabled = false; }
+    });
+
     // ── LEAVE ─────────────────────────────────────────────────────────────────
+    function switchLeaveTab(tab) {
+        const isMine = tab === 'mine';
+        document.getElementById('leaveTabMine').className = `px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${isMine ? 'bg-indigo-600 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`;
+        document.getElementById('leaveTabStudents').className = `px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${!isMine ? 'bg-indigo-600 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`;
+        document.getElementById('leaveTabMineContent').classList.toggle('hidden', !isMine);
+        document.getElementById('leaveTabStudentsContent').classList.toggle('hidden', isMine);
+    }
+
+    async function loadStudentLeaveRequests() {
+        const tbody = document.getElementById('studentLeaveTable');
+        try {
+            const res = await apiFetch('/api/leaves');
+            const leaves = res.data || [];
+            if (!leaves.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-8 text-sm">No student leave requests.</td></tr>'; return; }
+            tbody.innerHTML = leaves.map(l => `<tr>
+                <td class="font-medium text-sm">${l.student?.name || '—'}</td>
+                <td class="text-xs text-gray-400">${new Date(l.fromDate).toLocaleDateString()}</td>
+                <td class="text-xs text-gray-400">${new Date(l.toDate).toLocaleDateString()}</td>
+                <td class="text-sm text-gray-400 max-w-xs truncate">${l.reason}</td>
+                <td><span class="badge ${l.status==='approved'?'badge-present':l.status==='rejected'?'badge-absent':'badge-late'}">${l.status}</span></td>
+                <td>${l.status==='pending'?`<div class="flex gap-1"><button onclick="reviewStudentLeave('${l._id}','approved')" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded-lg">Approve</button><button onclick="reviewStudentLeave('${l._id}','rejected')" class="text-xs bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded-lg">Reject</button></div>`:'<span class="text-xs text-gray-500">Reviewed</span>'}</td>
+            </tr>`).join('');
+        } catch(e) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-red-400 py-8 text-sm">Failed to load.</td></tr>'; }
+    }
+
+    async function reviewStudentLeave(id, status) {
+        try {
+            await apiFetch(`/api/leaves/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+            showToast(`Leave ${status}!`, 'success'); loadStudentLeaveRequests();
+        } catch(e) {}
+    }
+
     async function loadTeacherLeave() {
         const tbody = document.getElementById('teacherLeaveTable');
         try {
-            const res = await apiFetch('/api/leaves');
-            const leaves = (res.data || []).filter(l => l.studentId?._id === (JSON.parse(localStorage.getItem('user')||'{}')._id));
+            const res = await apiFetch('/api/leaves/my');
+            const leaves = res.data || [];
             if (!leaves.length) {
                 tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-6 text-sm">No applications yet.</td></tr>';
                 return;
@@ -1401,7 +1654,7 @@
         const btn = e.target.querySelector('button[type=submit]');
         btn.disabled = true; btn.textContent = 'Submitting...';
         try {
-            const res = await apiFetch('/api/leaves', {
+            await apiFetch('/api/leaves/apply', {
                 method: 'POST',
                 body: JSON.stringify({
                     fromDate: document.getElementById('leaveFrom').value,
@@ -1421,9 +1674,7 @@
     async function loadStudentProfile() {
         const studentId = document.getElementById('profileStudentId').value;
         if (!studentId) return showToast('Select a student', 'error');
-        const card = document.getElementById('studentProfileCard');
-        card.classList.remove('hidden');
-
+        document.getElementById('studentProfileCard').classList.remove('hidden');
         try {
             const [attRes, marksRes, feesRes, discRes] = await Promise.all([
                 apiFetch(`/api/attendance/${studentId}`),
@@ -1431,46 +1682,79 @@
                 apiFetch(`/api/fees/${studentId}`),
                 apiFetch(`/api/discipline/student/${studentId}`),
             ]);
-
             const stuName = document.getElementById('profileStudentId').options[document.getElementById('profileStudentId').selectedIndex].text;
             document.getElementById('profileAvatar').textContent = stuName.charAt(0).toUpperCase();
             document.getElementById('profileName').textContent = stuName;
-
-            // Attendance %
-            const att = attRes.data || [];
-            const attPct = att.length ? Math.round(att.filter(a => a.status === 'present').length / att.length * 100) : 0;
-            document.getElementById('profileAttPct').textContent = attPct + '%';
-            document.getElementById('profileAttPct').style.color = attPct >= 75 ? '#34d399' : '#f87171';
-
-            // Avg marks
-            const marks = marksRes.data || [];
-            const avgM = marks.length ? Math.round(marks.reduce((s, m) => s + (m.marks / m.totalMarks * 100), 0) / marks.length) : null;
-            document.getElementById('profileAvgMarks').textContent = avgM !== null ? avgM + '%' : '—';
-
-            // Fee status
-            const fees = feesRes.data || [];
-            const unpaid = fees.filter(f => f.status !== 'paid').length;
-            document.getElementById('profileFeeStatus').textContent = unpaid ? `${unpaid} unpaid` : 'All clear ✓';
-
-            // Discipline count
+            document.getElementById('profileCode').textContent = 'Student';
+            const attPct = attRes.summary?.percentage || '0%';
+            document.getElementById('profileAttPct').textContent = attPct;
+            document.getElementById('profileAttPct').style.color = parseFloat(attPct) >= 75 ? '#34d399' : '#f87171';
+            document.getElementById('profileAvgMarks').textContent = marksRes.summary?.avgPercentage || '—';
+            const s = feesRes.summary || {};
+            const unpaidAmt = (s.pending || 0) + (s.overdue || 0);
+            document.getElementById('profileFeeStatus').textContent = unpaidAmt > 0 ? `₹${unpaidAmt.toLocaleString()} due` : 'All clear ✓';
+            document.getElementById('profileFeeStatus').style.color = unpaidAmt > 0 ? '#fbbf24' : '#34d399';
             document.getElementById('profileDiscCount').textContent = (discRes.data || []).length;
-        } catch(e) {
-            showToast('Failed to load profile', 'error');
-        }
+        } catch(e) { showToast('Failed to load profile', 'error'); }
     }
 
-    // ── CLASS REQUESTS ────────────────────────────────────────────────────────
-    async function loadClassRequestSessions() {
-        const sel = document.getElementById('crSession');
+    // ── ASSIGNMENTS ───────────────────────────────────────────────────────────
+    async function loadAssignmentSessions() {
+        const sel = document.getElementById('assignSessionId');
         if (!sel) return;
         try {
             const res = await apiFetch('/api/sessions');
             sel.innerHTML = '<option value="">Select Session</option>';
-            (res.data || []).forEach(s => {
-                sel.innerHTML += `<option value="${s._id}">${s.name} (${s.sessionCode})</option>`;
-            });
+            (res.data || []).forEach(s => { sel.innerHTML += `<option value="${s._id}">${s.name} (${s.sessionCode})</option>`; });
+            const dd = document.getElementById('assignDueDate');
+            if (dd && !dd.value) { const t = new Date(); t.setDate(t.getDate()+1); dd.value = t.toISOString().split('T')[0]; }
         } catch(e) {}
     }
+
+    async function loadMyAssignments() {
+        const container = document.getElementById('assignmentsList');
+        try {
+            const res = await apiFetch('/api/assignments');
+            const list = res.data || [];
+            if (!list.length) { container.innerHTML = '<p class="text-gray-500 text-center py-8 text-sm">No assignments created yet.</p>'; return; }
+            container.innerHTML = list.map(a => {
+                const isOverdue = new Date(a.dueDate) < new Date();
+                return `<div class="p-5 flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-semibold text-white text-sm">${a.title}</h4>
+                            <span class="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">${a.subject}</span>
+                        </div>
+                        <p class="text-xs text-gray-500">${a.sessionId?.name || '—'} · ${a.submissions?.length || 0} submission(s)</p>
+                        ${a.description ? `<p class="text-xs text-gray-400 mt-1">${a.description}</p>` : ''}
+                    </div>
+                    <div class="text-right shrink-0">
+                        <p class="text-xs text-gray-500">Due</p>
+                        <p class="text-sm font-medium ${isOverdue ? 'text-red-400' : 'text-amber-400'}">${new Date(a.dueDate).toLocaleDateString()}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) { container.innerHTML = '<p class="text-red-400 text-center py-8 text-sm">Failed to load.</p>'; }
+    }
+
+    document.getElementById('createAssignmentForm')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type=submit]');
+        const og = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
+        try {
+            await apiFetch('/api/assignments', { method: 'POST', body: JSON.stringify({
+                sessionId:   document.getElementById('assignSessionId').value,
+                subject:     document.getElementById('assignSubject').value.trim(),
+                title:       document.getElementById('assignTitle').value.trim(),
+                description: document.getElementById('assignDesc').value.trim(),
+                dueDate:     document.getElementById('assignDueDate').value,
+            })});
+            showToast('Assignment created!', 'success'); e.target.reset(); loadMyAssignments();
+        } catch(e) {} finally { btn.innerHTML = og; btn.disabled = false; }
+    });
+
+    // ── CLASS REQUESTS ────────────────────────────────────────────────────────
+    async function loadClassRequestSessions() {
 
     async function loadMyClassRequests() {
         const tbody = document.getElementById('classRequestsTable');
