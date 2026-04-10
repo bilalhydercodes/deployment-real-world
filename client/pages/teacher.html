@@ -238,26 +238,26 @@
             <!-- Enter Marks -->
             <section id="sec-marks" class="section">
                 <h2 class="text-2xl font-bold text-white mb-2">Enter Marks</h2>
-                <p class="text-gray-400 text-sm mb-6">Record exam marks for students</p>
+                <p class="text-gray-400 text-sm mb-6">Load a session, fill in exam details, then enter marks for all students at once</p>
 
-                <div class="glass-card p-6">
-                    <form id="marksForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Step 1: Exam config -->
+                <div class="glass-card p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Exam Details</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
                         <div>
-                            <label class="text-xs text-gray-400 block mb-1">Student</label>
-                            <select id="mrkStudentId"
-                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
-                                <option value="">Select Student</option>
+                            <label class="text-xs text-gray-400 block mb-1">Session</label>
+                            <select id="bulkMrkSession" class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" required>
+                                <option value="">Select Session</option>
                             </select>
                         </div>
                         <div>
                             <label class="text-xs text-gray-400 block mb-1">Subject</label>
-                            <input type="text" id="mrkSubject" placeholder="e.g. Physics"
-                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
+                            <input type="text" id="bulkMrkSubject" placeholder="e.g. Mathematics"
+                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" required />
                         </div>
                         <div>
                             <label class="text-xs text-gray-400 block mb-1">Exam Type</label>
-                            <select id="mrkExamType"
-                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
+                            <select id="bulkMrkExamType" class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm">
                                 <option value="midterm">Midterm</option>
                                 <option value="final">Final</option>
                                 <option value="assignment">Assignment</option>
@@ -265,22 +265,50 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs text-gray-400 block mb-1">Marks Obtained</label>
-                            <input type="number" id="mrkMarks" placeholder="0-100" min="0" max="100"
-                                class="input-glow w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-3 py-2.5 text-sm" />
-                        </div>
-                        <div>
                             <label class="text-xs text-gray-400 block mb-1">Total Marks</label>
-                            <input type="number" id="mrkTotal" value="100" min="1"
+                            <input type="number" id="bulkMrkTotal" value="100" min="1"
                                 class="input-glow w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" />
                         </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Date</label>
+                            <input type="date" id="bulkMrkDate"
+                                class="input-glow w-full bg-[#1a1a2e] border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm" />
+                        </div>
                         <div class="flex items-end">
-                            <button type="submit"
-                                class="btn-gradient text-white font-semibold py-2.5 px-8 rounded-xl text-sm">
-                                Submit Marks
+                            <button onclick="loadBulkMarksRoster()" id="loadBulkMrkBtn"
+                                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-6 rounded-xl transition-colors text-sm">
+                                Load Students
                             </button>
                         </div>
-                    </form>
+                    </div>
+                </div>
+
+                <!-- Step 2: Marks grid -->
+                <div id="bulkMarksGrid" class="hidden glass-card overflow-hidden">
+                    <div class="p-4 border-b border-white/5 flex items-center justify-between">
+                        <h3 class="font-semibold text-white text-sm">Enter Marks for Each Student</h3>
+                        <span class="text-xs text-gray-400">Absent = auto 0 marks</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Student</th>
+                                    <th>Code</th>
+                                    <th>Status</th>
+                                    <th>Marks Obtained</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulkMrksTbody"></tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 border-t border-white/5 bg-black/20 flex justify-end">
+                        <button id="submitBulkMrksBtn" onclick="submitBulkMarks()"
+                            class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-8 rounded-xl transition-colors text-sm w-full sm:w-auto">
+                            Save All Marks
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -709,7 +737,9 @@
             } else if (name === 'classrequest') {
                 loadClassRequestSessions();
                 loadMyClassRequests();
-            } else if (['attendance', 'marks', 'viewAttendance'].includes(name)) {
+            } else if (name === 'marks') {
+                loadBulkMarksSessionDropdown();
+            } else if (['attendance', 'viewAttendance'].includes(name)) {
                 fetchStudents();
             } else if (name === 'discipline') {
                 fetchStudents();
@@ -824,30 +854,158 @@
             }
         }
 
-        document.getElementById('marksForm').addEventListener('submit', async (e) => {
+        document.getElementById('marksForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const payload = {
-                studentId: document.getElementById('mrkStudentId').value,
-                subject: document.getElementById('mrkSubject').value.trim(),
-                examType: document.getElementById('mrkExamType').value,
-                marks: Number(document.getElementById('mrkMarks').value),
-                totalMarks: Number(document.getElementById('mrkTotal').value),
-            };
-            if (!payload.studentId || !payload.subject || isNaN(payload.marks)) return showToast('Please fill all fields', 'error');
-            try {
-                const data = await apiFetch('/api/marks/add', {
-                    method: 'POST',
-                    body: JSON.stringify(payload),
-                });
-                if (data.success) {
-                    showToast(`Marks added! Grade: ${data.data.grade}`, 'success');
-                    e.target.reset();
-                    document.getElementById('mrkTotal').value = 100;
-                }
-            } catch (error) {
-                // Error handled by apiFetch
-            }
         });
+
+        // ── Bulk Marks ───────────────────────────────────────────────────────────
+        let activeBulkMarksStudents = [];
+
+        async function loadBulkMarksSessionDropdown() {
+            try {
+                const res = await apiFetch('/api/sessions');
+                const sel = document.getElementById('bulkMrkSession');
+                if (!sel) return;
+                sel.innerHTML = '<option value="">Select Session</option>';
+                (res.data || []).forEach(s => {
+                    sel.innerHTML += `<option value="${s._id}">${s.name} (${s.sessionCode})</option>`;
+                });
+                // Set today as default date
+                const dateEl = document.getElementById('bulkMrkDate');
+                if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+            } catch (e) {}
+        }
+
+        async function loadBulkMarksRoster() {
+            const sessionId = document.getElementById('bulkMrkSession').value;
+            const subject   = document.getElementById('bulkMrkSubject').value.trim();
+            if (!sessionId) return showToast('Select a session first', 'error');
+            if (!subject)   return showToast('Enter a subject', 'error');
+
+            const btn = document.getElementById('loadBulkMrkBtn');
+            const og = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
+
+            try {
+                const res = await apiFetch('/api/sessions');
+                const session = res.data.find(s => s._id === sessionId);
+                if (!session || !session.students || session.students.length === 0) {
+                    return showToast('No students found in this session', 'error');
+                }
+
+                // Set today as default date
+                const dateEl = document.getElementById('bulkMrkDate');
+                if (!dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+
+                activeBulkMarksStudents = session.students.map(s => ({
+                    studentId: s._id,
+                    name: s.name,
+                    inviteCode: s.inviteCode,
+                    status: 'present',
+                    marks: '',
+                }));
+
+                renderBulkMarksGrid();
+                document.getElementById('bulkMarksGrid').classList.remove('hidden');
+            } catch (e) {
+                showToast('Failed to load students', 'error');
+            } finally {
+                btn.innerHTML = og; btn.disabled = false;
+            }
+        }
+
+        function renderBulkMarksGrid() {
+            const total = Number(document.getElementById('bulkMrkTotal').value) || 100;
+            const tbody = document.getElementById('bulkMrksTbody');
+            tbody.innerHTML = activeBulkMarksStudents.map((s, idx) => {
+                const isAbsent = s.status === 'absent';
+                const marksVal = isAbsent ? 0 : (s.marks === '' ? '' : s.marks);
+                return `<tr id="mrkRow_${idx}">
+                    <td class="text-gray-500 text-xs">${idx + 1}</td>
+                    <td class="font-medium text-white">${s.name}</td>
+                    <td class="font-mono text-indigo-400 text-xs">${s.inviteCode || '—'}</td>
+                    <td>
+                        <select onchange="updateBulkMrkStatus(${idx}, this.value)"
+                            class="input-glow w-[130px] bg-[#1a1a2e] border ${isAbsent ? 'border-red-500/50 text-red-400' : 'border-emerald-500/50 text-emerald-400'} rounded-lg px-2 py-1.5 text-sm appearance-none cursor-pointer">
+                            <option value="present" ${s.status === 'present' ? 'selected' : ''}>✅ Present</option>
+                            <option value="absent"  ${s.status === 'absent'  ? 'selected' : ''}>❌ Absent</option>
+                            <option value="late"    ${s.status === 'late'    ? 'selected' : ''}>⏰ Late</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" id="mrkInput_${idx}"
+                            value="${marksVal}"
+                            min="0" max="${total}"
+                            ${isAbsent ? 'disabled' : ''}
+                            onchange="activeBulkMarksStudents[${idx}].marks = this.value"
+                            class="input-glow w-24 bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 text-sm ${isAbsent ? 'opacity-40 cursor-not-allowed' : ''}"
+                            placeholder="0–${total}" />
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateBulkMrkStatus(idx, status) {
+            activeBulkMarksStudents[idx].status = status;
+            if (status === 'absent') {
+                activeBulkMarksStudents[idx].marks = 0;
+            }
+            renderBulkMarksGrid();
+        }
+
+        async function submitBulkMarks() {
+            const subject   = document.getElementById('bulkMrkSubject').value.trim();
+            const examType  = document.getElementById('bulkMrkExamType').value;
+            const totalMarks = Number(document.getElementById('bulkMrkTotal').value) || 100;
+
+            if (!subject) return showToast('Subject is required', 'error');
+            if (activeBulkMarksStudents.length === 0) return;
+
+            // Collect current input values
+            activeBulkMarksStudents.forEach((s, idx) => {
+                if (s.status !== 'absent') {
+                    const el = document.getElementById(`mrkInput_${idx}`);
+                    if (el) s.marks = el.value;
+                }
+            });
+
+            // Validate — absent gets 0, others must have a value
+            const invalid = activeBulkMarksStudents.filter(s => s.status !== 'absent' && (s.marks === '' || s.marks === null || s.marks === undefined));
+            if (invalid.length > 0) {
+                return showToast(`Enter marks for all present students (${invalid.length} missing)`, 'error');
+            }
+
+            const btn = document.getElementById('submitBulkMrksBtn');
+            const og = btn.innerHTML; btn.innerHTML = '<span class="spin"></span> Saving...'; btn.disabled = true;
+
+            let saved = 0, failed = 0;
+            for (const s of activeBulkMarksStudents) {
+                const marksVal = s.status === 'absent' ? 0 : Number(s.marks);
+                try {
+                    await apiFetch('/api/marks/add', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            studentId: s.studentId,
+                            subject,
+                            examType,
+                            marks: marksVal,
+                            totalMarks,
+                        }),
+                    });
+                    saved++;
+                } catch (e) { failed++; }
+            }
+
+            btn.innerHTML = og; btn.disabled = false;
+
+            if (failed === 0) {
+                showToast(`✓ Marks saved for ${saved} students!`, 'success');
+                document.getElementById('bulkMarksGrid').classList.add('hidden');
+                document.getElementById('bulkMrkSubject').value = '';
+                activeBulkMarksStudents = [];
+            } else {
+                showToast(`Saved ${saved}, failed ${failed}. Check and retry.`, 'error');
+            }
+        }
 
         let currentViewRecords = { att: [], mrk: [] };
 
