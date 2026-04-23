@@ -1,10 +1,11 @@
-// LeaveRequest model — student leave applications
+// LeaveRequest model — leave applications (students and teachers)
 const mongoose = require('mongoose');
 
 const leaveRequestSchema = new mongoose.Schema(
     {
-        schoolId:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
-        student:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        schoolId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+        student:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        applicantRole: { type: String, enum: ['student', 'teacher'], default: 'student' },
         reason:     { type: String, required: true, trim: true, maxlength: 500 },
         fromDate:   { type: Date, required: true },
         toDate:     { type: Date, required: true },

@@ -8,7 +8,8 @@ const applyLeave = async (req, res, next) => {
         if (new Date(fromDate) > new Date(toDate))
             return res.status(400).json({ success: false, message: 'fromDate must be before toDate' });
 
-        const leave = await LeaveRequest.create({ schoolId: req.user.schoolId, student: req.user._id, reason, fromDate, toDate });
+        const applicantRole = req.user.role === 'teacher' ? 'teacher' : 'student';
+        const leave = await LeaveRequest.create({ schoolId: req.user.schoolId, student: req.user._id, applicantRole, reason, fromDate, toDate });
         res.status(201).json({ success: true, data: leave });
     } catch (err) { next(err); }
 };
@@ -24,7 +25,8 @@ const getMyLeaves = async (req, res, next) => {
 
 const getAllLeaves = async (req, res, next) => {
     try {
-        const leaves = await LeaveRequest.find({ schoolId: req.user.schoolId })
+        // Only return student leave requests for the review queue
+        const leaves = await LeaveRequest.find({ schoolId: req.user.schoolId, applicantRole: 'student' })
             .populate('student', 'name inviteCode')
             .populate('reviewedBy', 'name')
             .sort('-createdAt');

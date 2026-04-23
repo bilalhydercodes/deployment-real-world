@@ -1714,13 +1714,8 @@
     async function loadTeacherLeave() {
         const tbody = document.getElementById('teacherLeaveTable');
         try {
-            // Teachers can't use /api/leaves/my (student-only route)
-            // Use /api/leaves (all leaves) and filter by teacher's own ID
-            const res = await apiFetch('/api/leaves');
-            const leaves = (res.data || []).filter(l => {
-                const sid = l.student?._id || l.student;
-                return String(sid) === String(user._id);
-            });
+            const res = await apiFetch('/api/leaves/my');
+            const leaves = res.data || [];
             if (!leaves.length) {
                 tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-6 text-sm">No applications yet.</td></tr>';
                 return;
