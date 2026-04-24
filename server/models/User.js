@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema(
         createdBy:      { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         loginAttempts: { type: Number, default: 0 },
         lockUntil:     { type: Date, default: null },
+        lastLogin:     { type: Date, default: null },
+        lastActivity:  { type: Date, default: null },
     },
     { timestamps: true }
 );
@@ -40,6 +42,8 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ role: 1 });
 userSchema.index({ role: 1, createdAt: -1 });
 userSchema.index({ schoolId: 1, role: 1 });
+userSchema.index({ schoolId: 1, role: 1, lastActivity: -1 });
+userSchema.index({ schoolId: 1, role: 1, lastLogin: -1 });
 userSchema.index({ name: 'text' });
 
 // ── Password hashing ──────────────────────────────────────────────────────────

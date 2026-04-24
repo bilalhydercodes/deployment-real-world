@@ -39,6 +39,14 @@ const protect = async (req, res, next) => {
 
             req.user = user;
 
+            // Update lastActivity at most once per minute to reduce write load
+            const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+            User.updateOne(
+                { _id: user._id, $or: [{ lastActivity: { $lt: oneMinuteAgo } }, { lastActivity: null }] },
+                { $set: { lastActivity: new Date() } }
+            ).catch(() => {});
+
+
             // ── Backward compat: fix missing schoolId for existing accounts ──
             // Old admin accounts created before schoolId was added won't have it.
             // Auto-heal: admin's schoolId = their own _id.

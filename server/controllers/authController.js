@@ -1,8 +1,8 @@
 // Auth Controller
 const User = require('../models/User');
 const Session = require('../models/Session');
-const generateToken = require('../utils/generateToken');
 const { isValidEmail, isValidPassword, isValidRole, passwordRules } = require('../utils/validators');
+const { createSessionTokens } = require('./tokenController');
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MS   = 15 * 60 * 1000;
@@ -52,13 +52,13 @@ const register = async (req, res, next) => {
         user.schoolId = user._id;
         await user.save();
 
-        const token = generateToken(user._id, user.role);
+        const sessionData = await createSessionTokens({ user, req });
         console.log(`[REGISTER] Admin created: ${user.email} schoolId: ${user.schoolId}`);
 
         res.status(201).json({
             success: true,
             message: 'Admin account created successfully',
-            data: { _id: user._id, name: user.name, email: user.email, role: user.role, schoolId: user.schoolId, token },
+            data: sessionData,
         });
     } catch (error) {
         next(error);
@@ -87,12 +87,12 @@ const login = async (req, res, next) => {
         }
 
         await handleSuccessfulLogin(user);
-        const token = generateToken(user._id, user.role);
+        const sessionData = await createSessionTokens({ user, req });
 
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            data: { _id: user._id, name: user.name, email: user.email, role: user.role, schoolId: user.schoolId, token },
+            data: sessionData,
         });
     } catch (error) {
         next(error);
@@ -120,12 +120,12 @@ const studentLogin = async (req, res, next) => {
         }
 
         await handleSuccessfulLogin(student);
-        const token = generateToken(student._id, student.role);
+        const sessionData = await createSessionTokens({ user: student, req });
 
         res.status(200).json({
             success: true,
             message: 'Student login successful',
-            data: { _id: student._id, name: student.name, role: student.role, schoolId: student.schoolId, inviteCode: student.inviteCode, token },
+            data: sessionData,
         });
     } catch (error) {
         next(error);
@@ -152,12 +152,12 @@ const teacherLogin = async (req, res, next) => {
         }
 
         await handleSuccessfulLogin(teacher);
-        const token = generateToken(teacher._id, teacher.role);
+        const sessionData = await createSessionTokens({ user: teacher, req });
 
         res.status(200).json({
             success: true,
             message: 'Teacher login successful',
-            data: { _id: teacher._id, name: teacher.name, email: teacher.email, role: teacher.role, schoolId: teacher.schoolId, inviteCode: teacher.inviteCode, token },
+            data: sessionData,
         });
     } catch (error) {
         next(error);
@@ -193,8 +193,7 @@ const getAllStudents = async (req, res, next) => {
         if (req.user.role === 'teacher') {
             const orConditions = [{ teachers: req.user._id }];
             if (req.user.classTeacherOf) orConditions.push({ _id: req.user.classTeacherOf });
-            const sessions = await Session.find({ $or: orConditions, schoolId }).select('students');
-            const ids = [...new Set(sessions.flatMap(s => s.students.map(id => id.toString())))];
+            const ids = await Session.distinct('students', { $or: orConditions, schoolId });
             filter = { _id: { $in: ids }, role: 'student', schoolId, ...searchFilter };
         } else if (req.user.role !== 'admin') {
             return res.status(403).json({ success: false, message: 'Forbidden' });

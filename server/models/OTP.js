@@ -30,6 +30,7 @@ otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // Fast lookup by contact
 otpSchema.index({ contact: 1 });
+otpSchema.index({ contact: 1, expiresAt: -1 });
 
 module.exports = mongoose.model('OTP', otpSchema);
 
