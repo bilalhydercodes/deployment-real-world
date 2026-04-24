@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – College Management System</title>
+  <meta name="description" content="Login to the College Management System." />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    *, *::before, *::after { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #ffedd5 100%);
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid rgba(249,115,22,0.12);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 20px 60px rgba(249,115,22,0.08), 0 4px 16px rgba(0,0,0,0.04);
+      position: relative; z-index: 1;
+    }
+    /* Tabs */
+    .tab-bar { display: flex; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 4px; margin-bottom: 1.5rem; gap: 4px; }
+    .tab-btn {
+      flex: 1; padding: 0.6rem; border: none; border-radius: 9px; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: #6b7280;
+    }
+    .tab-btn.active { background: #fff; color: #ea580c; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .tab-btn:hover:not(.active) { color: #374151; background: rgba(0,0,0,0.03); }
+    /* Staff sub-tabs */
+    .subtab-bar { display: flex; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 3px; margin-bottom: 1rem; gap: 3px; }
+    .subtab-btn {
+      flex: 1; padding: 0.5rem; border: none; border-radius: 7px; font-size: 0.78rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: #6b7280;
+    }
+    .subtab-btn.active { background: #fff; color: #ea580c; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    /* Inputs */
+    .inp {
+      width: 100%; background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px;
+      padding: 0.75rem 1rem; font-size: 0.875rem; color: #1f2937; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .inp:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.12); }
+    .inp::placeholder { color: #9ca3af; }
+    .inp.pr { padding-right: 2.75rem; }
+    /* Buttons */
+    .btn-primary {
+      width: 100%; background: linear-gradient(135deg, #f97316, #ea580c); color: #fff;
+      border: none; border-radius: 12px; padding: 0.85rem; font-size: 0.875rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: block;
+      position: relative; z-index: 2;
+    }
+    .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg,#ea580c,#c2410c); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(249,115,22,0.3); }
+    .btn-primary:active:not(:disabled) { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-green {
+      width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+      border: none; border-radius: 12px; padding: 0.85rem; font-size: 0.875rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: block; position: relative; z-index: 2;
+    }
+    .btn-green:hover:not(:disabled) { background: linear-gradient(135deg,#059669,#047857); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.3); }
+    .btn-green:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-gray {
+      flex: 1; background: #f3f4f6; color: #374151; border: 1.5px solid #e5e7eb;
+      border-radius: 12px; padding: 0.75rem; font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-gray:hover { background: #e5e7eb; }
+    .btn-half {
+      flex: 1; background: linear-gradient(135deg,#10b981,#059669); color: #fff;
+      border: none; border-radius: 12px; padding: 0.75rem; font-size: 0.875rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-half:hover:not(:disabled) { background: linear-gradient(135deg,#059669,#047857); }
+    .btn-half:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-link { background: none; border: none; color: #ea580c; font-size: 0.82rem; cursor: pointer; padding: 0.4rem; width: 100%; text-align: center; }
+    .btn-link:hover { color: #c2410c; }
+    /* Pwd toggle */
+    .pwd-wrap { position: relative; }
+    .pwd-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; padding: 4px; z-index: 3; }
+    .pwd-toggle:hover { color: #374151; }
+    /* Loader */
+    .loader { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Toast */
+    #toast { position: fixed; top: 1.25rem; right: 1.25rem; z-index: 9999; padding: 0.85rem 1.25rem; border-radius: 12px; font-size: 0.85rem; font-weight: 500; max-width: 360px; display: none; align-items: center; gap: 0.5rem; }
+    #toast.show { display: flex; }
+    #toast.success { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+    #toast.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+    #toast.info    { background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; }
+    /* Overlay */
+    #loginOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(6px); z-index: 9998; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; }
+    #loginOverlay.show { display: flex; }
+    .big-loader { width: 36px; height: 36px; border: 3px solid rgba(249,115,22,0.2); border-top-color: #f97316; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    /* Misc */
+    .hidden { display: none !important; }
+    label { display: block; font-size: 0.8rem; font-weight: 500; color: #6b7280; margin-bottom: 0.4rem; }
+    .field { margin-bottom: 1rem; }
+    .otp-input { text-align: center; font-size: 1.5rem; letter-spacing: 0.3em; font-weight: 700; }
+    .hint-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.75rem; color: #6b7280; text-align: center; margin-top: 1.25rem; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+    .shake { animation: shake 0.4s ease; }
+  </style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="big-loader"></div>
+  <span style="color:#ea580c;font-size:0.9rem;font-weight:500;">Signing you in...</span>
+</div>
+
+<div id="toast"></div>
+
+<div class="card" id="loginCard">
+  <!-- Logo -->
+  <div style="text-align:center;margin-bottom:1.5rem;">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:0.75rem;box-shadow:0 8px 24px rgba(249,115,22,0.25);">
+      <svg width="26" height="26" fill="none" stroke="white" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+      </svg>
+    </div>
+    <h1 style="font-size:1.4rem;font-weight:700;color:#111827;">Welcome Back</h1>
+    <p style="font-size:0.82rem;color:#6b7280;margin-top:2px;">College Management System</p>
+  </div>
+
+  <!-- Main tabs: Student / Staff -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabStudent" onclick="switchMainTab('student')">🎓 Student Login</button>
+    <button class="tab-btn" id="tabStaff" onclick="switchMainTab('staff')">👔 Staff Login</button>
+  </div>
+
+  <!-- ── STUDENT FORM ── -->
+  <div id="formStudent">
+    <div class="field">
+      <label>Invite Code</label>
+      <input type="text" id="inviteCode" class="inp" placeholder="e.g. STU-1A2B3C" style="text-transform:uppercase;" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pwd-wrap">
+        <input type="password" id="studentPassword" class="inp pr" placeholder="••••••••" />
+        <button type="button" class="pwd-toggle" onclick="togglePwd('studentPassword')">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-10.94 3.06A9 9 0 0119.94 15.06M3 3l18 18"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn-primary" id="studentBtn" onclick="doStudentLogin()">Enter Student Portal</button>
+  </div>
+
+  <!-- ── STAFF FORM ── -->
+  <div id="formStaff" class="hidden">
+    <!-- Sub-tabs: Teacher / Admin -->
+    <div class="subtab-bar">
+      <button class="subtab-btn active" id="subtabTeacher" onclick="switchStaffTab('teacher')">👩‍🏫 Teacher (Code)</button>
+      <button class="subtab-btn" id="subtabAdmin" onclick="switchStaffTab('admin')">🛡️ Admin (Email)</button>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="staffStep1">
+      <!-- Teacher fields -->
+      <div id="teacherFields">
+        <div class="field">
+          <label>Teacher Code</label>
+          <input type="text" id="teacherCode" class="inp" placeholder="e.g. TCH-1A2B3C" style="text-transform:uppercase;" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="pwd-wrap">
+            <input type="password" id="teacherPwd" class="inp pr" placeholder="••••••••" />
+            <button type="button" class="pwd-toggle" onclick="togglePwd('teacherPwd')">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-10.94 3.06A9 9 0 0119.94 15.06M3 3l18 18"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Admin fields -->
+      <div id="adminFields" class="hidden">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="adminEmail" class="inp" placeholder="admin@college.edu" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="pwd-wrap">
+            <input type="password" id="adminPwd" class="inp pr" placeholder="••••••••" />
+            <button type="button" class="pwd-toggle" onclick="togglePwd('adminPwd')">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-10.94 3.06A9 9 0 0119.94 15.06M3 3l18 18"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <button class="btn-green" id="staffContinueBtn" onclick="doStaffStep1()">Continue</button>
+    </div>
+
+    <!-- Step 2: OTP (disabled — direct login after credential verification) -->
+    <div id="staffStep2" class="hidden" style="display:none!important;"></div>
+  </div>
+
+  <!-- Links -->
+  <p style="text-align:center;font-size:0.82rem;color:#6b7280;margin-top:1.25rem;">
+    Don't have an account?
+    <a href="register.html" style="color:#ea580c;font-weight:600;text-decoration:none;">Register</a>
+  </p>
+  <p style="text-align:center;margin-top:0.5rem;">
+    <a href="forgot-password.html" style="font-size:0.82rem;color:#ea580c;font-weight:500;text-decoration:none;">Forgot Password?</a>
+  </p>
+
+  <div class="hint-box">
+    🎓 Students: Use <strong>Invite Code</strong> given by admin.<br/>
+    👩‍🏫 Teachers: Use <strong>Teacher Code</strong> (TCH-XXXXX) given by admin.
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script>
+  // ── Auto-redirect if already logged in ──────────────────────────────────────
+  (function () {
+    try {
+      const token = localStorage.getItem('token');
+      const user  = JSON.parse(localStorage.getItem('user') || 'null');
+      if (token && user && user.role) {
+        const r = user.role.toLowerCase();
+        if (r === 'admin')   { window.location.replace('admin.html');   return; }
+        if (r === 'teacher') { window.location.replace('teacher.html'); return; }
+        window.location.replace('student.html');
+      }
+    } catch (e) {}
+  })();
+
+  // ── State ────────────────────────────────────────────────────────────────────
+  var staffMode    = 'teacher'; // 'teacher' | 'admin'
+  var staffData    = null;
+  var staffContact = '';
+
+  // ── Toast ────────────────────────────────────────────────────────────────────
+  function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show ' + (type || 'info');
+    clearTimeout(window._toast);
+    window._toast = setTimeout(function () { t.className = ''; }, 4000);
+  }
+
+  // ── Overlay ──────────────────────────────────────────────────────────────────
+  function showOverlay() { document.getElementById('loginOverlay').classList.add('show'); }
+  function hideOverlay() { document.getElementById('loginOverlay').classList.remove('show'); }
+
+  // ── Shake card ───────────────────────────────────────────────────────────────
+  function shakeCard() {
+    var c = document.getElementById('loginCard');
+    c.classList.add('shake');
+    setTimeout(function () { c.classList.remove('shake'); }, 500);
+  }
+
+  // ── Password toggle ──────────────────────────────────────────────────────────
+  function togglePwd(id) {
+    var inp = document.getElementById(id);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  // ── Main tab switch ──────────────────────────────────────────────────────────
+  function switchMainTab(tab) {
+    var isStudent = tab === 'student';
+    document.getElementById('tabStudent').classList.toggle('active', isStudent);
+    document.getElementById('tabStaff').classList.toggle('active', !isStudent);
+    document.getElementById('formStudent').classList.toggle('hidden', !isStudent);
+    document.getElementById('formStaff').classList.toggle('hidden', isStudent);
+  }
+
+  // ── Staff sub-tab switch ─────────────────────────────────────────────────────
+  function switchStaffTab(mode) {
+    staffMode = mode;
+    var isTeacher = mode === 'teacher';
+    document.getElementById('subtabTeacher').classList.toggle('active', isTeacher);
+    document.getElementById('subtabAdmin').classList.toggle('active', !isTeacher);
+    document.getElementById('teacherFields').classList.toggle('hidden', !isTeacher);
+    document.getElementById('adminFields').classList.toggle('hidden', isTeacher);
+  }
+
+  // ── Student login ────────────────────────────────────────────────────────────
+  // Shared fetch with timeout + waking-server hint
+  function fetchWithTimeout(url, opts, btn, originalLabel) {
+    var controller = new AbortController();
+    var wakeHint = setTimeout(function() {
+      if (btn && btn.disabled) btn.innerHTML = '<span class="loader"></span> Waking server...';
+    }, 5000);
+    var timeout = setTimeout(function() { controller.abort(); }, 20000);
+    return fetch(url, Object.assign({}, opts, { signal: controller.signal }))
+      .then(function(res) { clearTimeout(wakeHint); clearTimeout(timeout); return res; })
+      .catch(function(err) {
+        clearTimeout(wakeHint); clearTimeout(timeout);
+        if (err.name === 'AbortError') {
+          hideOverlay();
+          showToast('Server is waking up. Please wait 30s and try again.', 'error');
+          if (btn) { btn.innerHTML = originalLabel; btn.disabled = false; }
+          throw new Error('timeout');
+        }
+        throw err;
+      });
+  }
+
+  async function doStudentLogin() {
+    var inviteCode = document.getElementById('inviteCode').value.trim().toUpperCase();
+    var password   = document.getElementById('studentPassword').value;
+    if (!inviteCode || !password) { showToast('Please enter Invite Code and Password', 'error'); return; }
+
+    var btn = document.getElementById('studentBtn');
+    btn.innerHTML = '<span class="loader"></span> Signing in...';
+    btn.disabled = true;
+    showOverlay();
+
+    try {
+      var res  = await fetchWithTimeout(API_BASE_URL + '/api/auth/student-login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteCode, password })
+      }, btn, 'Enter Student Portal');
+      var data = await res.json();
+      if (data.success) {
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data));
+        showToast('Login successful!', 'success');
+        setTimeout(function () { window.location.href = 'student.html'; }, 700);
+      } else {
+        hideOverlay(); shakeCard();
+        showToast(data.message || 'Invalid credentials', 'error');
+        btn.innerHTML = 'Enter Student Portal'; btn.disabled = false;
+      }
+    } catch (e) {
+      hideOverlay(); shakeCard();
+      showToast('Server error. Please try again.', 'error');
+      btn.innerHTML = 'Enter Student Portal'; btn.disabled = false;
+    }
+  }
+
+  // ── Staff step 1 ─────────────────────────────────────────────────────────────
+  async function doStaffStep1() {
+    var btn = document.getElementById('staffContinueBtn');
+    btn.innerHTML = '<span class="loader"></span> Verifying...';
+    btn.disabled = true;
+    showOverlay();
+
+    try {
+      var res, data, contact;
+
+      if (staffMode === 'teacher') {
+        var code = document.getElementById('teacherCode').value.trim().toUpperCase();
+        var pwd  = document.getElementById('teacherPwd').value;
+        if (!code || !pwd) { hideOverlay(); showToast('Enter Teacher Code and Password', 'error'); btn.innerHTML = 'Continue'; btn.disabled = false; return; }
+        res     = await fetchWithTimeout(API_BASE_URL + '/api/teacher/teacher-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inviteCode: code, password: pwd }) }, btn, 'Continue');
+        contact = code;
+      } else {
+        var email = document.getElementById('adminEmail').value.trim();
+        var pwd2  = document.getElementById('adminPwd').value;
+        if (!email || !pwd2) { hideOverlay(); showToast('Enter Email and Password', 'error'); btn.innerHTML = 'Continue'; btn.disabled = false; return; }
+        res     = await fetchWithTimeout(API_BASE_URL + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pwd2 }) }, btn, 'Continue');
+        contact = email;
+      }
+
+      data = await res.json();
+      if (data.success) {
+        // OTP disabled — log in directly after credential verification
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data));
+        showToast('Login successful!', 'success');
+        setTimeout(function () {
+          var r = (data.data.role || '').toLowerCase();
+          window.location.href = r === 'admin' ? 'admin.html' : 'teacher.html';
+        }, 700);
+      } else {
+        hideOverlay(); shakeCard();
+        showToast(data.message || 'Invalid credentials', 'error');
+      }
+    } catch (e) {
+      hideOverlay(); shakeCard();
+      showToast(e.message || 'Server error. Please try again.', 'error');
+    } finally {
+      btn.innerHTML = 'Continue'; btn.disabled = false;
+    }
+  }
+
+  // ── Staff verify OTP ─────────────────────────────────────────────────────────
+  async function doStaffVerifyOtp() {
+    var otp = document.getElementById('staffOtpCode').value.trim();
+    if (!otp || otp.length !== 6) { showToast('Enter the 6-digit OTP', 'error'); return; }
+
+    var btn = document.getElementById('staffVerifyBtn');
+    btn.innerHTML = '<span class="loader"></span>';
+    btn.disabled = true;
+    showOverlay();
+
+    try {
+      var res  = await fetch(API_BASE_URL + '/api/otp/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact: staffContact, otp }) });
+      var data = await res.json();
+      if (data.success) {
+        localStorage.setItem('token', staffData.token);
+        localStorage.setItem('user', JSON.stringify(staffData));
+        showToast('Login successful!', 'success');
+        setTimeout(function () {
+          var r = (staffData.role || '').toLowerCase();
+          window.location.href = r === 'admin' ? 'admin.html' : 'teacher.html';
+        }, 700);
+      } else {
+        hideOverlay(); shakeCard();
+        showToast(data.message || 'Invalid OTP', 'error');
+        btn.innerHTML = 'Verify & Login'; btn.disabled = false;
+      }
+    } catch (e) {
+      hideOverlay(); shakeCard();
+      showToast('Server error. Please try again.', 'error');
+      btn.innerHTML = 'Verify & Login'; btn.disabled = false;
+    }
+  }
+
+  // ── Staff resend OTP ─────────────────────────────────────────────────────────
+  async function doStaffResendOtp() {
+    var btn = document.getElementById('staffResendBtn');
+    btn.textContent = 'Sending...'; btn.disabled = true;
+    try {
+      var res  = await fetch(API_BASE_URL + '/api/otp/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact: staffContact }) });
+      var data = await res.json();
+      showToast(data.success ? 'OTP resent!' : (data.message || 'Failed'), data.success ? 'success' : 'error');
+    } catch { showToast('Server error.', 'error'); }
+    finally { btn.textContent = 'Resend OTP'; btn.disabled = false; }
+  }
+
+  // ── Back ─────────────────────────────────────────────────────────────────────
+  function goBackStaff() {
+    document.getElementById('staffStep2').classList.add('hidden');
+    document.getElementById('staffStep1').classList.remove('hidden');
+    staffData = null;
+  }
+
+  // ── Enter key support ────────────────────────────────────────────────────────
+  document.getElementById('studentPassword').addEventListener('keydown', function (e) { if (e.key === 'Enter') doStudentLogin(); });
+  document.getElementById('staffOtpCode').addEventListener('keydown', function (e) { if (e.key === 'Enter') doStaffVerifyOtp(); });
+</script>
+</body>
+</html>
