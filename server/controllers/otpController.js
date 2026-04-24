@@ -3,6 +3,9 @@
 // expired documents — no cron job or manual cleanup needed.
 const OTP = require('../models/OTP');
 const nodemailer = require('nodemailer');
+const logger = require('../utils/logger');
+
+const OTP_RESEND_COOLDOWN_SEC = Math.max(15, parseInt(process.env.OTP_RESEND_COOLDOWN_SEC || '60', 10));
 
 /** Generate a cryptographically random 6-digit OTP */
 function generateOTP() {
@@ -31,13 +34,13 @@ async function sendOTPEmail(email, otp) {
     const transporter = createTransporter();
     
     if (!transporter) {
-        console.log(`[OTP] Email not configured. OTP for ${email}: ${otp}`);
+        logger.warn('otp_email_not_configured', { email });
         return false;
     }
 
     try {
         await transporter.sendMail({
-            from: process.env.SMTP_USER,
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
             to: email,
             subject: 'Your OTP Code - College Management System',
             html: `
@@ -53,10 +56,10 @@ async function sendOTPEmail(email, otp) {
             `,
             text: `Your OTP code is: ${otp}. Valid for 5 minutes.`,
         });
-        console.log(`[OTP] Email sent to ${email}`);
+        logger.info('otp_email_sent', { email });
         return true;
     } catch (error) {
-        console.error(`[OTP] Email send failed:`, error.message);
+        logger.error('otp_email_send_failed', { email, error: error.message });
         return false;
     }
 }
@@ -80,6 +83,19 @@ const sendOTP = async (req, res, next) => {
         const otp = generateOTP();
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
+        const existing = await OTP.findOne({ contact: normalised });
+        if (existing && existing.updatedAt) {
+            const secondsSinceLast = Math.floor((Date.now() - new Date(existing.updatedAt).getTime()) / 1000);
+            if (secondsSinceLast < OTP_RESEND_COOLDOWN_SEC) {
+                const retryAfterSeconds = OTP_RESEND_COOLDOWN_SEC - secondsSinceLast;
+                return res.status(429).json({
+                    success: false,
+                    message: `Please wait ${retryAfterSeconds}s before requesting another OTP.`,
+                    retryAfterSeconds,
+                });
+            }
+        }
+
         // Upsert: replace any existing OTP for this contact (prevents duplicates)
         await OTP.findOneAndUpdate(
             { contact: normalised },
@@ -97,7 +113,7 @@ const sendOTP = async (req, res, next) => {
 
         // Log OTP to console in development or if email fails
         if (process.env.NODE_ENV !== 'production' || !emailSent) {
-            console.log(`[OTP] ${normalised} → ${otp}`);
+            logger.info('otp_generated', { contact: normalised, delivery: emailSent ? 'email' : 'log-only' });
         }
 
         res.json({

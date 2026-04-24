@@ -5,6 +5,9 @@ const User = require('../models/User');
 const OTP = require('../models/OTP');
 const nodemailer = require('nodemailer');
 const { isValidPassword, passwordRules } = require('../utils/validators');
+const logger = require('../utils/logger');
+
+const OTP_RESEND_COOLDOWN_SEC = Math.max(15, parseInt(process.env.OTP_RESEND_COOLDOWN_SEC || '60', 10));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -27,12 +30,12 @@ function createTransporter() {
 async function sendOTPEmail(email, otp) {
     const transporter = createTransporter();
     if (!transporter) {
-        console.log(`[FORGOT-PWD OTP] ${email} → ${otp}`);
+        logger.warn('forgot_password_email_not_configured', { email });
         return false;
     }
     try {
         await transporter.sendMail({
-            from: `"College Management" <${process.env.SMTP_USER}>`,
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
             to: email,
             subject: 'Password Reset OTP - College Management System',
             html: `
@@ -48,10 +51,10 @@ async function sendOTPEmail(email, otp) {
                 </div>`,
             text: `Your password reset OTP is: ${otp}. Valid for 5 minutes.`,
         });
-        console.log(`[FORGOT-PWD OTP] Email sent to ${email}`);
+        logger.info('forgot_password_otp_email_sent', { email });
         return true;
     } catch (err) {
-        console.error(`[FORGOT-PWD OTP] Email failed:`, err.message);
+        logger.error('forgot_password_otp_email_failed', { email, error: err.message });
         return false;
     }
 }
@@ -86,6 +89,19 @@ const requestPasswordReset = async (req, res, next) => {
             return res.json({ success: true, message: genericMsg });
         }
 
+        const existing = await OTP.findOne({ contact: normalised });
+        if (existing && existing.updatedAt) {
+            const secondsSinceLast = Math.floor((Date.now() - new Date(existing.updatedAt).getTime()) / 1000);
+            if (secondsSinceLast < OTP_RESEND_COOLDOWN_SEC) {
+                const retryAfterSeconds = OTP_RESEND_COOLDOWN_SEC - secondsSinceLast;
+                return res.status(429).json({
+                    success: false,
+                    message: `Please wait ${retryAfterSeconds}s before requesting another OTP.`,
+                    retryAfterSeconds,
+                });
+            }
+        }
+
         const otp = generateOTP();
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
 
@@ -103,7 +119,7 @@ const requestPasswordReset = async (req, res, next) => {
 
         // Always log in dev
         if (process.env.NODE_ENV !== 'production' || !sent) {
-            console.log(`[FORGOT-PWD OTP] ${normalised} → ${otp}`);
+            logger.info('forgot_password_otp_generated', { contact: normalised, delivery: sent ? 'email' : 'log-only' });
         }
 
         return res.json({
@@ -190,7 +206,8 @@ const resetPassword = async (req, res, next) => {
 
         // Validate reset token
         const record = await OTP.findOne({ contact: `reset:${normalised}`, otp: hashed });
-        if (!record) {
+        if (!record || record.expiresAt <= new Date()) {
+            if (record) await OTP.deleteOne({ _id: record._id });
             return res.status(400).json({ success: false, message: 'Reset token is invalid or has expired.' });
         }
 
@@ -204,12 +221,14 @@ const resetPassword = async (req, res, next) => {
 
         // Update password (pre-save hook will hash it)
         user.password = newPassword;
+        user.loginAttempts = 0;
+        user.lockUntil = null;
         await user.save();
 
         // Invalidate the reset token
         await OTP.deleteOne({ _id: record._id });
 
-        console.log(`[FORGOT-PWD] Password reset for user: ${user.email || user.mobile} (${user.role})`);
+        logger.info('forgot_password_reset_success', { userId: String(user._id), role: user.role });
 
         return res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
     } catch (err) {
@@ -241,7 +260,7 @@ const adminUpdatePassword = async (req, res, next) => {
         await target.save();
 
         // Security audit log
-        console.log(`[ADMIN-PWD-RESET] Admin ${req.user.email} (${req.user._id}) reset password for ${target.email || target.inviteCode} (${target.role}) at ${new Date().toISOString()}`);
+        logger.warn('admin_password_reset', { adminId: String(req.user._id), targetId: String(target._id), targetRole: target.role });
 
         return res.json({
             success: true,

@@ -24,6 +24,7 @@ const xss            = require('xss');
 const compression    = require('compression');
 
 const connectDB        = require('./config/db');
+const appConfig        = require('./config/env');
 const requestLogger    = require('./middleware/requestLogger');
 const securityLogger   = require('./middleware/securityLogger');
 const errorMiddleware  = require('./middleware/errorMiddleware');
@@ -85,23 +86,22 @@ app.use(helmet({
 }));
 
 // ── 4. CORS ───────────────────────────────────────────────────────────────────
-const allowedOrigins = process.env.CLIENT_ORIGIN
-    ? process.env.CLIENT_ORIGIN.split(',').map(o => o.trim())
-    : ['*'];
+const allowedOrigins = appConfig.clientOrigins;
 
+const allowAnyOrigin = allowedOrigins.includes('*');
 app.use(cors({
-    origin: allowedOrigins.includes('*') ? '*' : (origin, cb) => {
+    origin: allowAnyOrigin ? true : (origin, cb) => {
         if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
         cb(new Error(`CORS: origin '${origin}' not allowed`));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    credentials: !allowAnyOrigin,
 }));
 
 // ── 5. Body parsers (BEFORE sanitizers) ──────────────────────────────────────
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: appConfig.bodyLimit }));
+app.use(express.urlencoded({ extended: true, limit: appConfig.bodyLimit }));
 
 // ── 6. NoSQL Injection prevention ────────────────────────────────────────────
 // Strips $ and . from req.body, req.query, req.params
@@ -180,6 +180,32 @@ const resetLimiter = rateLimit({
     message: { success: false, message: 'Too many password reset attempts. Please try again in an hour.' },
 });
 
+
+const refreshLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many token refresh requests. Please wait and retry.' },
+});
+
+const adminOtpRequestLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 6,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many admin OTP requests. Please wait 10 minutes.' },
+});
+
+const adminOtpVerifyLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true,
+    message: { success: false, message: 'Too many admin OTP verification attempts. Please wait 10 minutes.' },
+});
+
 // ── 10. Request logger ────────────────────────────────────────────────────────
 app.use(requestLogger);
 app.use(securityLogger);
@@ -193,16 +219,24 @@ app.get('/', (req, res) => {
     res.send('Server running');
 });
 
-app.get('/api/health', (req, res) => {
+const healthHandler = (req, res) => {
     const dbState = ['disconnected', 'connected', 'connecting', 'disconnecting'];
     res.json({
         success: true,
+        code: 'HEALTH_OK',
         message: 'College Management API is running',
-        environment: process.env.NODE_ENV || 'development',
-        db: dbState[require('mongoose').connection.readyState] || 'unknown',
-        timestamp: new Date().toISOString(),
+        data: {
+            environment: appConfig.env,
+            db: dbState[require('mongoose').connection.readyState] || 'unknown',
+            uptimeSeconds: Math.floor(process.uptime()),
+            version: appConfig.appVersion,
+            timestamp: new Date().toISOString(),
+        },
     });
-});
+};
+
+app.get('/api/health', healthHandler);
+app.get('/api/v1/health', healthHandler);
 
 // ── 13. Rate limit bindings (BEFORE route mounting) ──────────────────────────
 app.use('/api/auth/register',              registerLimiter);
@@ -212,22 +246,40 @@ app.use('/api/auth/teacher-login',         loginLimiter);
 app.use('/api/teacher/teacher-login',      loginLimiter);
 app.use('/api/otp/',                       otpLimiter);
 app.use('/api/auth/forgot-password',       resetLimiter);
+app.use('/api/auth/refresh-token',         refreshLimiter);
+app.use('/api/admin/otp/request',          adminOtpRequestLimiter);
+app.use('/api/admin/otp/verify',           adminOtpVerifyLimiter);
+app.use('/api/v1/auth/register',           registerLimiter);
+app.use('/api/v1/auth/login',              loginLimiter);
+app.use('/api/v1/auth/student-login',      loginLimiter);
+app.use('/api/v1/auth/teacher-login',      loginLimiter);
+app.use('/api/v1/teacher/teacher-login',   loginLimiter);
+app.use('/api/v1/otp/',                    otpLimiter);
+app.use('/api/v1/auth/forgot-password',    resetLimiter);
+app.use('/api/v1/auth/refresh-token',      refreshLimiter);
+app.use('/api/v1/admin/otp/request',       adminOtpRequestLimiter);
+app.use('/api/v1/admin/otp/verify',        adminOtpVerifyLimiter);
 
 // ── 14. API routes ────────────────────────────────────────────────────────────
-app.use('/api/auth',        require('./routes/authRoutes'));
-app.use('/api/teacher',     require('./routes/teacherRoutes'));
-app.use('/api/attendance',  require('./routes/attendanceRoutes'));
-app.use('/api/marks',       require('./routes/marksRoutes'));
-app.use('/api/fees',        require('./routes/feesRoutes'));
-app.use('/api/sessions',    require('./routes/sessionRoutes'));
-app.use('/api/notices',     require('./routes/noticeRoutes'));
-app.use('/api/timetable',   require('./routes/timetableRoutes'));
-app.use('/api/assignments', require('./routes/assignmentRoutes'));
-app.use('/api/leaves',      require('./routes/leaveRoutes'));
-app.use('/api/discipline',  require('./routes/disciplineRoutes'));
-app.use('/api/otp',         require('./routes/otpRoutes'));
-app.use('/api/admin',       require('./routes/adminRoutes'));
-app.use('/api/class-requests', require('./routes/classRequestRoutes'));
+const mountApiRoutes = (prefix) => {
+    app.use(`${prefix}/auth`,        require('./routes/authRoutes'));
+    app.use(`${prefix}/teacher`,     require('./routes/teacherRoutes'));
+    app.use(`${prefix}/attendance`,  require('./routes/attendanceRoutes'));
+    app.use(`${prefix}/marks`,       require('./routes/marksRoutes'));
+    app.use(`${prefix}/fees`,        require('./routes/feesRoutes'));
+    app.use(`${prefix}/sessions`,    require('./routes/sessionRoutes'));
+    app.use(`${prefix}/notices`,     require('./routes/noticeRoutes'));
+    app.use(`${prefix}/timetable`,   require('./routes/timetableRoutes'));
+    app.use(`${prefix}/assignments`, require('./routes/assignmentRoutes'));
+    app.use(`${prefix}/leaves`,      require('./routes/leaveRoutes'));
+    app.use(`${prefix}/discipline`,  require('./routes/disciplineRoutes'));
+    app.use(`${prefix}/otp`,         require('./routes/otpRoutes'));
+    app.use(`${prefix}/admin`,       require('./routes/adminRoutes'));
+    app.use(`${prefix}/class-requests`, require('./routes/classRequestRoutes'));
+};
+
+mountApiRoutes('/api');
+mountApiRoutes('/api/v1');
 
 // ── 15. SPA fallback ──────────────────────────────────────────────────────────
 app.get('*', (req, res, next) => {

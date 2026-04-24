@@ -80,7 +80,8 @@ async function apiFetch(url, options = {}) {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
     };
-    const res = await fetch(url, { ...options, headers });
+    const fullUrl = url.startsWith('http') ? url : API_BASE_URL + url;
+    const res = await fetch(fullUrl, { ...options, headers });
     const data = await res.json();
     if (res.status === 401) {
         showToast('Session expired. Please log in again.', 'error');
@@ -160,8 +161,8 @@ function hidePageLoader() {
             return res;
         } catch (err) {
             const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
-            // Only intercept same-origin API calls
-            if (url.startsWith('/api/')) {
+            const isApiCall = url.startsWith('/api/') || url.startsWith(API_BASE_URL + '/api/');
+            if (isApiCall) {
                 sessionStorage.setItem('offlineFrom', window.location.href);
                 sessionStorage.setItem('offlineError', err.message || 'Network error');
                 window.location.href = '/client/pages/offline.html';
